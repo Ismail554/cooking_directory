@@ -1,6 +1,5 @@
-import 'package:cooking_directory/app.dart';
-import 'package:flutter/material.dart';
+import 'package:cooking_directory/bootstrap.dart';
 
-void main() {
-  runApp(const MyApp());
+void main() async {
+  await bootstrap();
 }
