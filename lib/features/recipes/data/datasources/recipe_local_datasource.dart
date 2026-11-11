@@ -1,0 +1,178 @@
+import '../models/recipe_model.dart';
+
+abstract class RecipeLocalDataSource {
+  /// Fetches a rich seed catalog of culinary recipes.
+  Future<List<RecipeModel>> getSeedRecipes();
+}
+
+class RecipeLocalDataSourceImpl implements RecipeLocalDataSource {
+  const RecipeLocalDataSourceImpl();
+
+  @override
+  Future<List<RecipeModel>> getSeedRecipes() async {
+    return _seedRecipes;
+  }
+
+  static final List<RecipeModel> _seedRecipes = [
+    RecipeModel(
+      id: 'recipe_001',
+      title: 'Creamy Tuscan Garlic Chicken',
+      description: 'Pan-seared chicken cutlets bathed in a rich garlic, sun-dried tomato, and spinach cream sauce.',
+      category: 'Dinner',
+      prepTimeMinutes: 15,
+      cookTimeMinutes: 20,
+      servings: 4,
+      calories: 450,
+      difficulty: 'Medium',
+      ingredients: const [
+        '2 boneless skinless chicken breasts',
+        '3 cloves garlic minced',
+        '1 cup heavy cream',
+        '1/2 cup chicken broth',
+        '1/2 cup sun-dried tomatoes chopped',
+        '2 cups fresh baby spinach',
+        '1/4 cup grated parmesan cheese',
+        '1 tbsp olive oil'
+      ],
+      steps: const [
+        'Season chicken breasts with salt, pepper, and Italian herbs.',
+        'Heat olive oil in a skillet over medium-high heat and sear chicken for 6 minutes per side until golden.',
+        'Remove chicken and set aside on a warm plate.',
+        'In the same skillet, sauté garlic until fragrant, then add sun-dried tomatoes and chicken broth.',
+        'Pour in heavy cream and bring to a gentle simmer.',
+        'Add spinach and parmesan cheese, stirring until spinach wilts.',
+        'Return chicken to the skillet, spoon sauce over cutlets, and simmer for 3 minutes before serving.'
+      ],
+      isFavorite: true,
+      createdAt: DateTime(2026, 1, 15, 12, 0),
+    ),
+    RecipeModel(
+      id: 'recipe_002',
+      title: 'Classic Beef Bolognese',
+      description: 'Slow-simmered rich Italian meat ragù with hearty ground beef, aromatics, and plum tomatoes served over pasta.',
+      category: 'Dinner',
+      prepTimeMinutes: 20,
+      cookTimeMinutes: 45,
+      servings: 6,
+      calories: 550,
+      difficulty: 'Medium',
+      ingredients: const [
+        '500g lean ground beef',
+        '1 yellow onion diced',
+        '2 medium carrots finely chopped',
+        '2 celery ribs finely chopped',
+        '3 cloves garlic minced',
+        '800g crushed San Marzano tomatoes',
+        '2 tbsp tomato paste',
+        '1/2 cup dry red wine',
+        '400g tagliatelle pasta',
+        '2 tbsp extra virgin olive oil'
+      ],
+      steps: const [
+        'Heat olive oil in a large Dutch oven and brown ground beef until fully cooked.',
+        'Remove beef and sauté onion, carrots, and celery until softened (approx. 8 minutes).',
+        'Stir in minced garlic and tomato paste for 1 minute.',
+        'Deglaze the pot with red wine, scraping up browned bits.',
+        'Return beef, pour in crushed tomatoes, and simmer gently on low heat for 35 minutes.',
+        'Cook tagliatelle in salted boiling water until al dente.',
+        'Toss pasta directly into the ragù and serve with freshly grated parmesan.'
+      ],
+      isFavorite: false,
+      createdAt: DateTime(2026, 2, 1, 18, 30),
+    ),
+    RecipeModel(
+      id: 'recipe_003',
+      title: 'Mediterranean Quinoa Salad',
+      description: 'Vibrant, refreshing quinoa bowl loaded with crisp English cucumbers, Kalamata olives, feta, and lemon oregano vinaigrette.',
+      category: 'Lunch',
+      prepTimeMinutes: 15,
+      cookTimeMinutes: 15,
+      servings: 4,
+      calories: 320,
+      difficulty: 'Easy',
+      ingredients: const [
+        '1 cup uncooked quinoa rinsed',
+        '2 cups water',
+        '1 English cucumber diced',
+        '1 cup cherry tomatoes halved',
+        '1/2 cup Kalamata olives pitted',
+        '1/2 cup crumbled feta cheese',
+        '1/4 cup red onion thinly sliced',
+        '3 tbsp extra virgin olive oil',
+        '2 tbsp fresh lemon juice',
+        '1 tsp dried oregano'
+      ],
+      steps: const [
+        'Combine quinoa and water in a saucepan; bring to boil, then simmer covered for 15 minutes.',
+        'Fluff cooked quinoa with a fork and allow it to cool completely in a mixing bowl.',
+        'Whisk together olive oil, lemon juice, dried oregano, salt, and black pepper in a small jar.',
+        'Add diced cucumber, halved cherry tomatoes, Kalamata olives, red onion, and feta to the quinoa.',
+        'Drizzle lemon dressing over the salad and toss gently to coat evenly.',
+        'Chill in refrigerator for 20 minutes before serving.'
+      ],
+      isFavorite: true,
+      createdAt: DateTime(2026, 2, 10, 9, 15),
+    ),
+    RecipeModel(
+      id: 'recipe_004',
+      title: 'Berry Avocado Smoothie Bowl',
+      description: 'Thick and creamy antioxidant breakfast bowl blended with ripe avocado, wild blueberries, and topped with crunchy seeds.',
+      category: 'Breakfast',
+      prepTimeMinutes: 10,
+      cookTimeMinutes: 0,
+      servings: 2,
+      calories: 280,
+      difficulty: 'Easy',
+      ingredients: const [
+        '1 ripe avocado pitted and peeled',
+        '1.5 cups frozen wild blueberries and raspberries',
+        '1 cup unsweetened almond milk',
+        '1 tbsp raw honey or maple syrup',
+        '2 tbsp rolled oats',
+        '1 tbsp chia seeds',
+        '1/4 cup sliced strawberries for topping'
+      ],
+      steps: const [
+        'Place avocado, frozen berries, rolled oats, sweetener, and almond milk into a high-speed blender.',
+        'Blend on high speed for 60 seconds until thick and velvety smooth.',
+        'Divide evenly between two chilled serving bowls.',
+        'Garnish top with fresh sliced strawberries, chia seeds, and extra berries.',
+        'Serve immediately with a dessert spoon.'
+      ],
+      isFavorite: false,
+      createdAt: DateTime(2026, 3, 5, 8, 0),
+    ),
+    RecipeModel(
+      id: 'recipe_005',
+      title: 'Homemade Margherita Pizza',
+      description: 'Artisanal Neapolitan style pizza with slow-fermented dough, crushed San Marzano tomato sauce, fresh mozzarella, and aromatic basil.',
+      category: 'Dinner',
+      prepTimeMinutes: 30,
+      cookTimeMinutes: 15,
+      servings: 3,
+      calories: 620,
+      difficulty: 'Hard',
+      ingredients: const [
+        '300g pizza flour (tipo 00)',
+        '200ml lukewarm water',
+        '1 tsp active dry yeast',
+        '1 tsp sea salt',
+        '1/2 cup crushed San Marzano tomatoes',
+        '200g fresh buffalo mozzarella sliced',
+        'Handful fresh sweet basil leaves',
+        '1 tbsp extra virgin olive oil'
+      ],
+      steps: const [
+        'Dissolve yeast in lukewarm water, mix with flour and salt, and knead for 10 minutes until elastic.',
+        'Cover dough and let proof at room temperature for at least 1 hour.',
+        'Preheat oven to maximum temperature (250°C / 500°F) with a pizza stone inside.',
+        'Stretch dough gently by hand into a 12-inch round with raised crust edges.',
+        'Spread crushed tomatoes thinly over the dough and distribute mozzarella slices.',
+        'Bake on hot stone for 10 to 12 minutes until crust is blistered and cheese bubbles.',
+        'Top with fresh basil leaves and a drizzle of extra virgin olive oil before slicing.'
+      ],
+      isFavorite: true,
+      createdAt: DateTime(2026, 3, 20, 19, 0),
+    ),
+  ];
+}

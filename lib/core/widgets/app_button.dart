@@ -6,7 +6,7 @@ import 'package:cooking_directory/core/managers/font_manager.dart';
 import 'package:cooking_directory/core/managers/style_manager.dart';
 import 'package:cooking_directory/core/managers/value_manager.dart';
 
-/// Primary design system button with loading state.
+/// Primary design system button with gradient styling, shadow, and loading state.
 class AppButton extends StatelessWidget {
   const AppButton({
     super.key,
@@ -19,6 +19,10 @@ class AppButton extends StatelessWidget {
     this.foregroundColor,
     this.width,
     this.height,
+    this.useGradient = true,
+    this.gradient,
+    this.boxShadow,
+    this.borderRadius,
   });
 
   final String text;
@@ -30,10 +34,15 @@ class AppButton extends StatelessWidget {
   final Color? foregroundColor;
   final double? width;
   final double? height;
+  final bool useGradient;
+  final Gradient? gradient;
+  final List<BoxShadow>? boxShadow;
+  final BorderRadius? borderRadius;
 
   @override
   Widget build(BuildContext context) {
     final effectiveHeight = height ?? 48.h;
+    final effectiveRadius = borderRadius ?? AppBorderRadius.r12;
 
     if (isOutlined) {
       return SizedBox(
@@ -43,9 +52,46 @@ class AppButton extends StatelessWidget {
           onPressed: isLoading ? null : onPressed,
           style: OutlinedButton.styleFrom(
             side: BorderSide(color: backgroundColor ?? AppColors.primary),
-            shape: RoundedRectangleBorder(borderRadius: AppBorderRadius.r12),
+            shape: RoundedRectangleBorder(borderRadius: effectiveRadius),
           ),
           child: _buildChild(context, isOutlined: true),
+        ),
+      );
+    }
+
+    final isEnabled = onPressed != null && !isLoading;
+    final applyGradient = useGradient &&
+        (gradient != null ||
+            backgroundColor == null ||
+            backgroundColor == AppColors.primary);
+
+    if (applyGradient) {
+      final effectiveGradient = gradient ?? AppColors.primaryGradient;
+      final effectiveShadow =
+          isEnabled ? (boxShadow ?? [AppColors.glowingOrangeShadow]) : null;
+
+      return Container(
+        width: width ?? double.infinity,
+        height: effectiveHeight,
+        decoration: BoxDecoration(
+          gradient: isEnabled ? effectiveGradient : null,
+          color: isEnabled
+              ? null
+              : (backgroundColor ??
+                  Theme.of(context).disabledColor.withValues(alpha: 0.12)),
+          borderRadius: effectiveRadius,
+          boxShadow: effectiveShadow,
+        ),
+        child: ElevatedButton(
+          onPressed: isLoading ? null : onPressed,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.transparent,
+            shadowColor: Colors.transparent,
+            foregroundColor: foregroundColor ?? AppColors.onPrimary,
+            shape: RoundedRectangleBorder(borderRadius: effectiveRadius),
+            elevation: AppElevation.e0,
+          ),
+          child: _buildChild(context, isOutlined: false),
         ),
       );
     }
@@ -58,7 +104,7 @@ class AppButton extends StatelessWidget {
         style: ElevatedButton.styleFrom(
           backgroundColor: backgroundColor ?? AppColors.primary,
           foregroundColor: foregroundColor ?? AppColors.onPrimary,
-          shape: RoundedRectangleBorder(borderRadius: AppBorderRadius.r12),
+          shape: RoundedRectangleBorder(borderRadius: effectiveRadius),
           elevation: AppElevation.e0,
         ),
         child: _buildChild(context, isOutlined: false),
@@ -89,11 +135,16 @@ class AppButton extends StatelessWidget {
         children: [
           Icon(icon, size: AppIconSize.s18, color: textColor),
           AppSpacing.gapW8,
-          Text(
-            text,
-            style: getSemiBoldStyle(
-              fontSize: FontSize.s15,
-              color: textColor,
+          Flexible(
+            child: Text(
+              text,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: getSemiBoldStyle(
+                context: context,
+                fontSize: FontSize.s15,
+                color: textColor,
+              ),
             ),
           ),
         ],
@@ -102,7 +153,10 @@ class AppButton extends StatelessWidget {
 
     return Text(
       text,
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
       style: getSemiBoldStyle(
+        context: context,
         fontSize: FontSize.s15,
         color: textColor,
       ),

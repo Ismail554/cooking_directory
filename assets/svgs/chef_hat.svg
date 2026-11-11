@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+  <!-- Ground / Base Shadow -->
+  <ellipse cx="50" cy="94" rx="28" ry="4" fill="#E5E0D8" opacity="0.7"/>
+  
+  <!-- Main Toque 5 Billows / Puffs -->
+  <!-- Left-most puff -->
+  <circle cx="28" cy="46" r="16" fill="#FBF9F6" stroke="#E65100" stroke-width="2"/>
+  <!-- Right-most puff -->
+  <circle cx="72" cy="46" r="16" fill="#FBF9F6" stroke="#E65100" stroke-width="2"/>
+  <!-- Mid-left puff -->
+  <circle cx="36" cy="30" r="18" fill="#FBF9F6" stroke="#E65100" stroke-width="2"/>
+  <!-- Mid-right puff -->
+  <circle cx="64" cy="30" r="18" fill="#FBF9F6" stroke="#E65100" stroke-width="2"/>
+  <!-- Center top puff -->
+  <circle cx="50" cy="22" r="20" fill="#FBF9F6" stroke="#E65100" stroke-width="2"/>
+  
+  <!-- Fill interior to merge puffs -->
+  <path d="M 28 46 L 36 30 L 50 22 L 64 30 L 72 46 L 68 70 L 32 70 Z" fill="#FBF9F6"/>
+  <!-- Soft shading pleats -->
+  <path d="M 38 42 Q 37 58 36 70" fill="none" stroke="#E5E0D8" stroke-width="2" stroke-linecap="round"/>
+  <path d="M 50 38 Q 50 56 50 70" fill="none" stroke="#E5E0D8" stroke-width="2" stroke-linecap="round"/>
+  <path d="M 62 42 Q 63 58 64 70" fill="none" stroke="#E5E0D8" stroke-width="2" stroke-linecap="round"/>
+  
+  <!-- Structured Headband -->
+  <rect x="25" y="70" width="50" height="18" rx="4" fill="#F3EFEA" stroke="#E65100" stroke-width="2"/>
+  
+  <!-- Herb Green Accent Stripe -->
+  <rect x="27" y="76" width="46" height="5" rx="2" fill="#2E7D32"/>
+</svg>

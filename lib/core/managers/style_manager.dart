@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:cooking_directory/core/managers/app_colors.dart';
 import 'package:cooking_directory/core/managers/font_manager.dart';
 
 TextStyle _getTextStyle(
   double fontSize,
   FontWeight fontWeight,
-  Color color, {
+  Color? color, {
   double? height,
   double? letterSpacing,
   TextDecoration? decoration,
@@ -22,98 +21,149 @@ TextStyle _getTextStyle(
   );
 }
 
-/// Regular text style helper
-TextStyle getRegularStyle({
-  double? fontSize,
-  Color color = AppColors.textPrimaryLight,
+/// Explicit theme-aware typography helper taking mandatory [context].
+TextStyle getThemeAwareStyle(
+  BuildContext context, {
+  required double fontSize,
+  FontWeight fontWeight = FontWeightManager.regular,
+  Color? color,
   double? height,
   double? letterSpacing,
+  TextDecoration? decoration,
 }) {
+  final resolvedColor = color ?? Theme.of(context).colorScheme.onSurface;
+  return _getTextStyle(
+    fontSize,
+    fontWeight,
+    resolvedColor,
+    height: height,
+    letterSpacing: letterSpacing,
+    decoration: decoration,
+  );
+}
+
+/// Regular text style helper (weight 400). Defaults to theme onSurface.
+TextStyle getRegularStyle({
+  BuildContext? context,
+  double? fontSize,
+  Color? color,
+  double? height,
+  double? letterSpacing,
+  TextDecoration? decoration,
+}) {
+  final resolved = color ??
+      (context != null ? Theme.of(context).colorScheme.onSurface : null);
   return _getTextStyle(
     fontSize ?? 14.sp,
     FontWeightManager.regular,
-    color,
+    resolved,
     height: height,
     letterSpacing: letterSpacing,
+    decoration: decoration,
   );
 }
 
-/// Medium text style helper
+/// Medium text style helper (weight 500). Defaults to theme onSurface.
 TextStyle getMediumStyle({
+  BuildContext? context,
   double? fontSize,
-  Color color = AppColors.textPrimaryLight,
+  Color? color,
   double? height,
   double? letterSpacing,
+  TextDecoration? decoration,
 }) {
+  final resolved = color ??
+      (context != null ? Theme.of(context).colorScheme.onSurface : null);
   return _getTextStyle(
     fontSize ?? 14.sp,
     FontWeightManager.medium,
-    color,
+    resolved,
     height: height,
     letterSpacing: letterSpacing,
+    decoration: decoration,
   );
 }
 
-/// SemiBold text style helper
+/// SemiBold text style helper (weight 600). Defaults to theme onSurface.
 TextStyle getSemiBoldStyle({
+  BuildContext? context,
   double? fontSize,
-  Color color = AppColors.textPrimaryLight,
+  Color? color,
   double? height,
   double? letterSpacing,
+  TextDecoration? decoration,
 }) {
+  final resolved = color ??
+      (context != null ? Theme.of(context).colorScheme.onSurface : null);
   return _getTextStyle(
     fontSize ?? 16.sp,
     FontWeightManager.semiBold,
-    color,
+    resolved,
     height: height,
     letterSpacing: letterSpacing,
+    decoration: decoration,
   );
 }
 
-/// Bold text style helper
+/// Bold text style helper (weight 700). Defaults to theme onSurface.
 TextStyle getBoldStyle({
+  BuildContext? context,
   double? fontSize,
-  Color color = AppColors.textPrimaryLight,
+  Color? color,
   double? height,
   double? letterSpacing,
+  TextDecoration? decoration,
 }) {
+  final resolved = color ??
+      (context != null ? Theme.of(context).colorScheme.onSurface : null);
   return _getTextStyle(
     fontSize ?? 18.sp,
     FontWeightManager.bold,
-    color,
+    resolved,
     height: height,
     letterSpacing: letterSpacing,
+    decoration: decoration,
   );
 }
 
-/// Light text style helper
+/// Light text style helper (weight 300). Defaults to theme onSurfaceVariant.
 TextStyle getLightStyle({
+  BuildContext? context,
   double? fontSize,
-  Color color = AppColors.textSecondaryLight,
+  Color? color,
   double? height,
   double? letterSpacing,
+  TextDecoration? decoration,
 }) {
+  final resolved = color ??
+      (context != null ? Theme.of(context).colorScheme.onSurfaceVariant : null);
   return _getTextStyle(
     fontSize ?? 12.sp,
     FontWeightManager.light,
-    color,
+    resolved,
     height: height,
     letterSpacing: letterSpacing,
+    decoration: decoration,
   );
 }
 
-/// ExtraBold text style helper
+/// ExtraBold text style helper (weight 800). Defaults to theme onSurface.
 TextStyle getExtraBoldStyle({
+  BuildContext? context,
   double? fontSize,
-  Color color = AppColors.textPrimaryLight,
+  Color? color,
   double? height,
   double? letterSpacing,
+  TextDecoration? decoration,
 }) {
+  final resolved = color ??
+      (context != null ? Theme.of(context).colorScheme.onSurface : null);
   return _getTextStyle(
     fontSize ?? 24.sp,
     FontWeightManager.extraBold,
-    color,
+    resolved,
     height: height,
     letterSpacing: letterSpacing,
+    decoration: decoration,
   );
 }

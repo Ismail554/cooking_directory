@@ -33,12 +33,13 @@ abstract final class AppColors {
   static const Color cardDark = Color(0xFF252525);
   static const Color surfaceVariantDark = Color(0xFF2C2C2C);
 
-  // Typography & Text
+  // Typography & Text - Light Mode
   static const Color textPrimaryLight = Color(0xFF1A1A1A);
   static const Color textSecondaryLight = Color(0xFF6C6C6C);
   static const Color textTertiaryLight = Color(0xFF9E9E9E);
   static const Color textHintLight = Color(0xFFBDBDBD);
 
+  // Typography & Text - Dark Mode
   static const Color textPrimaryDark = Color(0xFFEEEEEE);
   static const Color textSecondaryDark = Color(0xFFAAAAAA);
   static const Color textTertiaryDark = Color(0xFF757575);
@@ -56,6 +57,50 @@ abstract final class AppColors {
   static const Color errorContainer = Color(0xFFFFEBEE);
   static const Color warning = Color(0xFFED6C02);
   static const Color info = Color(0xFF0288D1);
+
+  // Culinary Gradients
+  static const LinearGradient primaryGradient = LinearGradient(
+    colors: [Color(0xFFFF833A), Color(0xFFE65100)],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
+
+  static const LinearGradient heroOverlayGradient = LinearGradient(
+    colors: [Colors.transparent, Color(0xCC000000)],
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+  );
+
+  static const LinearGradient warmCardGradient = LinearGradient(
+    colors: [Color(0xFFFFF8F1), Color(0xFFFFFFFF)],
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+  );
+
+  // Culinary Card Shadows
+  static const BoxShadow culinaryCardShadow = BoxShadow(
+    color: Color(0x0F000000),
+    blurRadius: 16,
+    offset: Offset(0, 6),
+  );
+
+  static const BoxShadow glowingOrangeShadow = BoxShadow(
+    color: Color(0x33E65100),
+    blurRadius: 12,
+    offset: Offset(0, 4),
+  );
+
+  // Culinary Semantic Badges & Tags
+  static const Color ratingStar = Color(0xFFFFB300);
+  static const Color calorieBadge = Color(0xFFFFF3E0);
+  static const Color calorieText = Color(0xFFE65100);
+  static const Color prepTimeTag = Color(0xFFE8F5E9);
+  static const Color prepTimeText = Color(0xFF2E7D32);
+
+  // Culinary Difficulty Badges
+  static const Color difficultyEasy = Color(0xFF2E7D32);
+  static const Color difficultyMedium = Color(0xFFFFA000);
+  static const Color difficultyHard = Color(0xFFD32F2F);
 
   // Expense Categories Palette
   static const Color expenseGroceries = Color(0xFF4CAF50);
