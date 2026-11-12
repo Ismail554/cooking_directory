@@ -7,6 +7,7 @@ void main() {
     final sampleModel = RecipeModel(
       id: 'm1',
       title: 'Chicken Tikka',
+      subtitle: 'Roasted spiced chicken bites',
       description: 'Spiced and roasted chicken bites',
       category: 'Dinner',
       prepTimeMinutes: 20,
@@ -26,6 +27,7 @@ void main() {
 
       expect(parsed.id, sampleModel.id);
       expect(parsed.title, sampleModel.title);
+      expect(parsed.subtitle, sampleModel.subtitle);
       expect(parsed.description, sampleModel.description);
       expect(parsed.category, sampleModel.category);
       expect(parsed.prepTimeMinutes, sampleModel.prepTimeMinutes);
@@ -45,6 +47,7 @@ void main() {
 
       expect(fallbackModel.id, '');
       expect(fallbackModel.title, '');
+      expect(fallbackModel.subtitle, '');
       expect(fallbackModel.description, '');
       expect(fallbackModel.category, 'General');
       expect(fallbackModel.prepTimeMinutes, 0);
@@ -62,6 +65,7 @@ void main() {
       final Recipe entity = Recipe(
         id: 'ent_1',
         title: 'Lentil Soup',
+        subtitle: 'Hearty spiced soup',
         description: 'Warm, spiced soup',
         category: 'Lunch',
         prepTimeMinutes: 10,
@@ -78,10 +82,12 @@ void main() {
       final model = RecipeModel.fromEntity(entity);
       expect(model.id, entity.id);
       expect(model.title, entity.title);
+      expect(model.subtitle, entity.subtitle);
 
       final convertedEntity = model.toEntity();
       expect(convertedEntity.id, entity.id);
       expect(convertedEntity.title, entity.title);
+      expect(convertedEntity.subtitle, entity.subtitle);
     });
   });
 }

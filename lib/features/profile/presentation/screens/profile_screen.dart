@@ -1,18 +1,20 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:cooking_directory/core/constants/app_spacing.dart';
-import 'package:cooking_directory/core/managers/app_colors.dart';
-import 'package:cooking_directory/core/managers/asset_manager.dart';
-import 'package:cooking_directory/core/managers/font_manager.dart';
-import 'package:cooking_directory/core/managers/style_manager.dart';
-import 'package:cooking_directory/core/managers/value_manager.dart';
-import 'package:cooking_directory/core/widgets/custom_snackbar.dart';
-
+import 'package:provider/provider.dart';
+import '../../../../core/constants/app_spacing.dart';
+import '../../../../core/managers/app_colors.dart';
+import '../../../../core/managers/font_manager.dart';
+import '../../../../core/managers/style_manager.dart';
+import '../../../../core/managers/value_manager.dart';
+import '../../../../core/widgets/custom_snackbar.dart';
+import '../../../authentication/presentation/providers/auth_provider.dart';
+import '../../../authentication/presentation/widgets/auth_dialog.dart';
+import '../widgets/app_branding_card.dart';
 import '../widgets/export_recipes_tile.dart';
+import '../widgets/import_recipes_tile.dart';
 import '../widgets/preference_dialogs.dart';
 import '../widgets/profile_header.dart';
 
-/// Chef profile screen with preferences, theming, currency & budget, and data export.
+/// Chef profile screen with preferences, theming, currency, data import/export, and auth.
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
 
@@ -34,6 +36,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final auth = context.watch<AuthProvider?>();
+    final user = auth?.currentUser;
+    final isAuth = auth?.isAuthenticated ?? false;
+
     return Scaffold(
       appBar: AppBar(
         title: Text('Chef Profile', style: getBoldStyle(context: context, fontSize: FontSize.s18)),
@@ -42,8 +48,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
         child: ListView(
           padding: AppSpacing.screenPadding,
           children: [
-            const ProfileHeader(),
-            AppSpacing.gapH24,
+            ProfileHeader(
+              name: (user?.displayName != null && user!.displayName!.isNotEmpty)
+                  ? user.displayName!
+                  : 'Chef Ismail',
+              email: (user?.email != null && user!.email!.isNotEmpty)
+                  ? user.email!
+                  : 'ismail@example.com',
+              photoUrl: user?.photoUrl,
+            ),
+            AppSpacing.gapH20,
             _buildSectionHeader('Preferences'),
             SwitchListTile(
               contentPadding: EdgeInsets.zero,
@@ -73,61 +87,33 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
             AppSpacing.gapH16,
             _buildSectionHeader('Data & Backup'),
+            const ImportRecipesTile(),
             const ExportRecipesTile(),
             AppSpacing.gapH16,
             _buildSectionHeader('Account'),
+            if (!isAuth)
+              _buildActionTile(
+                icon: Icons.login_rounded,
+                iconColor: AppColors.primary,
+                title: 'Sign In / Register',
+                subtitle: 'Sync recipes and cloud storage via Firebase',
+                onTap: () => AuthDialog.show(context),
+              ),
             _buildActionTile(
               icon: Icons.logout_rounded,
               iconColor: AppColors.error,
               title: 'Sign Out',
-              subtitle: 'End current session and lock recipe vault',
+              subtitle: isAuth
+                  ? 'Signed in as ${user?.email ?? "Chef"}'
+                  : 'End current session and lock recipe vault',
               textColor: AppColors.error,
-              onTap: _confirmSignOut,
+              onTap: () => _confirmSignOut(auth),
             ),
             AppSpacing.gapH24,
-            _buildAppBrandingCard(context),
+            const AppBrandingCard(),
             AppSpacing.gapH16,
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildAppBrandingCard(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Container(
-      height: 96.h,
-      decoration: BoxDecoration(
-        color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
-        borderRadius: AppBorderRadius.r16,
-        image: const DecorationImage(
-          image: AssetImage(AssetManager.splashBackground),
-          fit: BoxFit.cover,
-          opacity: 0.28,
-        ),
-        boxShadow: const [AppColors.culinaryCardShadow],
-        border: Border.all(color: isDark ? AppColors.borderDark : AppColors.borderLight),
-      ),
-      padding: AppSpacing.cardPadding,
-      child: Row(
-        children: [
-          ClipRRect(
-            borderRadius: AppBorderRadius.r12,
-            child: Image.asset(AssetManager.appLogo, width: 48.r, height: 48.r, fit: BoxFit.contain),
-          ),
-          AppSpacing.gapW16,
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text('Cooking Directory', style: getBoldStyle(context: context, fontSize: FontSize.s16)),
-                AppSpacing.gapH2,
-                Text('v1.0.0 • Artisan Culinary Suite', style: getRegularStyle(context: context, fontSize: FontSize.s12, color: AppColors.textSecondaryLight)),
-              ],
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -171,7 +157,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
     });
   }
 
-  void _confirmSignOut() {
-    PreferenceDialogs.showSignOutDialog(context, onConfirm: () => CustomSnackbar.show(context, message: 'Signed out successfully'));
+  void _confirmSignOut(AuthProvider? auth) {
+    PreferenceDialogs.showSignOutDialog(context, onConfirm: () async {
+      await auth?.signOut();
+      if (mounted) CustomSnackbar.show(context, message: 'Signed out successfully');
+    });
   }
 }

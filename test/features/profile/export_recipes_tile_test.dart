@@ -15,6 +15,12 @@ class StubRepository implements RecipeRepository {
 
   @override
   Future<String> exportRecipesToCsv(List<Recipe> recipes) async => '';
+
+  @override
+  Future<Recipe> addRecipe(Recipe recipe) async => recipe;
+
+  @override
+  Future<List<Recipe>> importRecipesFromCsv(String csvContent) async => [];
 }
 
 class FakeExportUseCase extends ExportRecipesToCsvUseCase {

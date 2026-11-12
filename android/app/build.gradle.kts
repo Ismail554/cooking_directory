@@ -8,7 +8,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.cooking_directory"
+    namespace = "com.ismail.chef"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -19,7 +19,7 @@ android {
 
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.example.cooking_directory"
+        applicationId = "com.ismail.chef"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion

@@ -15,11 +15,13 @@ class ProfileHeader extends StatelessWidget {
     this.name = 'Chef Ismail',
     this.email = 'ismail@example.com',
     this.role = 'Executive Chef',
+    this.photoUrl,
   });
 
   final String name;
   final String email;
   final String role;
+  final String? photoUrl;
 
   @override
   Widget build(BuildContext context) {
@@ -46,7 +48,9 @@ class ProfileHeader extends StatelessWidget {
             child: CircleAvatar(
               radius: 34.r,
               backgroundColor: AppColors.primaryContainer,
-              backgroundImage: const AssetImage(AssetManager.userAvatar),
+              backgroundImage: (photoUrl != null && photoUrl!.isNotEmpty)
+                  ? NetworkImage(photoUrl!) as ImageProvider
+                  : const AssetImage(AssetManager.userAvatar),
               onBackgroundImageError: (error, stack) {},
             ),
           ),

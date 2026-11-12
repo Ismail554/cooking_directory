@@ -1,103 +1,112 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:cooking_directory/core/constants/app_spacing.dart';
-import 'package:cooking_directory/core/managers/app_colors.dart';
-import 'package:cooking_directory/core/managers/font_manager.dart';
-import 'package:cooking_directory/core/managers/style_manager.dart';
-import 'package:cooking_directory/core/routing/route_paths.dart';
-import 'package:cooking_directory/core/widgets/app_empty_view.dart';
-import 'package:cooking_directory/core/widgets/app_loading_view.dart';
-import 'package:cooking_directory/features/home/presentation/widgets/featured_recipe_card.dart';
-import 'package:cooking_directory/features/home/presentation/widgets/home_category_pills.dart';
-import 'package:cooking_directory/features/home/presentation/widgets/home_header.dart';
-import 'package:cooking_directory/features/home/presentation/widgets/home_search_bar.dart';
-import 'package:cooking_directory/features/home/presentation/widgets/recipe_grid_card.dart';
+import 'package:provider/provider.dart';
+import '../../../../core/constants/app_spacing.dart';
+import '../../../../core/managers/app_colors.dart';
+import '../../../../core/managers/font_manager.dart';
+import '../../../../core/managers/style_manager.dart';
+import '../../../../core/routing/route_paths.dart';
+import '../../../../core/widgets/app_empty_view.dart';
+import '../../../../core/widgets/app_loading_view.dart';
+import '../../../recipes/data/datasources/recipe_seed_data.dart';
+import '../../../recipes/domain/entities/recipe.dart';
+import '../../../recipes/presentation/providers/recipe_provider.dart';
+import '../widgets/featured_recipe_card.dart';
+import '../widgets/home_category_pills.dart';
+import '../widgets/home_header.dart';
+import '../widgets/home_search_bar.dart';
+import '../widgets/recipe_grid_card.dart';
 
 /// Modernized Discover & Recipe Feed Screen adhering strictly to Clean Architecture.
-class HomeScreen extends StatefulWidget {
+class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
-}
-
-class _HomeScreenState extends State<HomeScreen> {
-  String _selectedCategory = 'All';
-  bool _isRefreshing = false;
-
-  Future<void> _handleRefresh() async {
-    setState(() => _isRefreshing = true);
-    await Future.delayed(const Duration(milliseconds: 600));
-    if (mounted) setState(() => _isRefreshing = false);
-  }
-
-  bool get _hasRecipesInSelectedCategory {
-    if (_selectedCategory == 'All') return true;
-    if (_selectedCategory == 'Dinner' || _selectedCategory == 'Lunch') return true;
-    return false;
-  }
-
-  @override
   Widget build(BuildContext context) {
+    final recipeProvider = context.watch<RecipeProvider?>();
+    final recipes = recipeProvider != null
+        ? recipeProvider.filteredRecipes
+        : kSeedRecipes.map((e) => e.toEntity()).toList();
+    final selectedCategory = recipeProvider?.selectedCategory ?? 'All';
+    final isLoading = recipeProvider?.isLoading ?? false;
+
+    final Recipe? featured = recipes.isNotEmpty ? recipes.first : null;
+    final otherRecipes = recipes.length > 1 ? recipes.sublist(1) : <Recipe>[];
+    final popularRecipes = otherRecipes.take(2).toList();
+
     return Scaffold(
       body: SafeArea(
         child: RefreshIndicator(
-          onRefresh: _handleRefresh,
+          onRefresh: () async => recipeProvider?.loadRecipes(),
           color: AppColors.primary,
           child: ListView(
             padding: AppSpacing.screenPadding,
             children: [
               const HomeHeader(),
               AppSpacing.gapH16,
-              HomeSearchBar(onFilterTap: () {}),
+              HomeSearchBar(
+                onChanged: (val) => recipeProvider?.setSearchQuery(val),
+                onFilterTap: () {},
+              ),
               AppSpacing.gapH16,
               HomeCategoryPills(
-                selectedCategory: _selectedCategory,
-                onCategorySelected: (cat) => setState(() => _selectedCategory = cat),
+                selectedCategory: selectedCategory,
+                onCategorySelected: (cat) => recipeProvider?.setCategory(cat),
               ),
               AppSpacing.gapH20,
-              if (_isRefreshing) ...[
+              if (isLoading && recipes.isEmpty) ...[
                 const SizedBox(
                   height: 140,
                   child: AppLoadingView(message: 'Simmering fresh recipes...'),
                 ),
-              ] else if (!_hasRecipesInSelectedCategory) ...[
+              ] else if (recipes.isEmpty) ...[
                 AppEmptyView(
-                  title: 'No Recipes in $_selectedCategory',
-                  message: 'No recipes found in this category yet. Tap below to create your first $_selectedCategory recipe!',
+                  title: 'No Recipes Found',
+                  message: 'No recipes match "$selectedCategory". Tap below to add or import your first recipe!',
                   actionLabel: 'Add Recipe',
                   onAction: () => context.push(AppRoutePaths.addRecipe),
                 ),
               ] else ...[
-                _buildSectionHeader('Featured Recipe', onViewAll: () {}),
-                AppSpacing.gapH12,
-                const FeaturedRecipeCard(),
-                AppSpacing.gapH20,
-                _buildSectionHeader('Popular Recipes', onViewAll: () {}),
-                AppSpacing.gapH12,
-                Row(
-                  children: [
-                    const Expanded(
-                      child: RecipeGridCard(
-                        recipeId: 'recipe_002',
-                        title: 'Beef Bolognese',
-                        prepTime: '20 min',
-                        calories: 550,
-                        rating: 4.8,
-                      ),
-                    ),
-                    AppSpacing.gapW12,
-                    const Expanded(
-                      child: RecipeGridCard(
-                        recipeId: 'recipe_003',
-                        title: 'Quinoa Salad',
-                        prepTime: '15 min',
-                        calories: 320,
-                        rating: 4.7,
-                      ),
-                    ),
-                  ],
-                ),
+                if (featured != null) ...[
+                  _buildSectionHeader(context, 'Featured Recipe'),
+                  AppSpacing.gapH12,
+                  FeaturedRecipeCard(
+                    recipeId: featured.id,
+                    title: featured.title,
+                    description: featured.subtitle.isNotEmpty
+                        ? featured.subtitle
+                        : featured.description,
+                    prepTime: '${featured.prepTimeMinutes + featured.cookTimeMinutes} min',
+                    difficulty: featured.difficulty,
+                    isFavorite: featured.isFavorite,
+                    onTap: () => context.push('${AppRoutePaths.recipeDetails}?id=${featured.id}'),
+                    onFavoriteToggle: (_) => recipeProvider?.toggleFavorite(featured.id),
+                  ),
+                  AppSpacing.gapH20,
+                ],
+                if (popularRecipes.isNotEmpty) ...[
+                  _buildSectionHeader(context, 'Popular Recipes'),
+                  AppSpacing.gapH12,
+                  Row(
+                    children: [
+                      for (int i = 0; i < popularRecipes.length; i++) ...[
+                        if (i > 0) AppSpacing.gapW12,
+                        Expanded(
+                          child: RecipeGridCard(
+                            recipeId: popularRecipes[i].id,
+                            title: popularRecipes[i].title,
+                            prepTime: '${popularRecipes[i].prepTimeMinutes} min',
+                            calories: popularRecipes[i].calories,
+                            rating: 4.8,
+                            onTap: () => context.push(
+                              '${AppRoutePaths.recipeDetails}?id=${popularRecipes[i].id}',
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ],
               ],
               AppSpacing.gapH48,
             ],
@@ -116,7 +125,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildSectionHeader(String title, {VoidCallback? onViewAll}) {
+  Widget _buildSectionHeader(BuildContext context, String title) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -126,17 +135,6 @@ class _HomeScreenState extends State<HomeScreen> {
             style: getBoldStyle(context: context, fontSize: FontSize.s16),
           ),
         ),
-        if (onViewAll != null)
-          TextButton(
-            onPressed: onViewAll,
-            child: Text(
-              'View All',
-              style: getSemiBoldStyle(
-                fontSize: FontSize.s13,
-                color: AppColors.primary,
-              ),
-            ),
-          ),
       ],
     );
   }

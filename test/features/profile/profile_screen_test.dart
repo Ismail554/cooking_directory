@@ -3,6 +3,9 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:cooking_directory/core/managers/asset_manager.dart';
+import 'package:cooking_directory/features/authentication/domain/entities/auth_user.dart';
+import 'package:cooking_directory/features/authentication/domain/repositories/auth_repository.dart';
+import 'package:cooking_directory/features/authentication/presentation/providers/auth_provider.dart';
 import 'package:cooking_directory/features/profile/presentation/screens/profile_screen.dart';
 import 'package:cooking_directory/features/profile/presentation/widgets/preference_dialogs.dart';
 import 'package:cooking_directory/features/profile/presentation/widgets/profile_header.dart';
@@ -10,12 +13,25 @@ import 'package:cooking_directory/features/recipes/domain/entities/recipe.dart';
 import 'package:cooking_directory/features/recipes/domain/repositories/recipe_repository.dart';
 import 'package:cooking_directory/features/recipes/domain/usecases/export_recipes_to_csv_usecase.dart';
 import 'package:cooking_directory/features/recipes/presentation/providers/recipe_export_provider.dart';
+import 'package:cooking_directory/features/recipes/presentation/providers/recipe_provider.dart';
 
 class _StubRepo implements RecipeRepository {
-  @override
-  Future<List<Recipe>> getAllRecipes() async => [];
-  @override
-  Future<String> exportRecipesToCsv(List<Recipe> recipes) async => '';
+  @override Future<List<Recipe>> getAllRecipes() async => [];
+  @override Future<String> exportRecipesToCsv(List<Recipe> recipes) async => '';
+  @override Future<Recipe> addRecipe(Recipe recipe) async => recipe;
+  @override Future<List<Recipe>> importRecipesFromCsv(String csvContent) async => [];
+}
+
+class _StubAuthRepo implements AuthRepository {
+  @override Stream<AuthUser?> get authStateChanges => Stream.value(null);
+  @override Stream<String?> get idTokenChanges => Stream.value(null);
+  @override AuthUser? get currentUser => null;
+  @override Future<String?> getIdToken({bool forceRefresh = false}) async => null;
+  @override Future<AuthUser?> signInWithEmail(String email, String password) async => null;
+  @override Future<AuthUser?> registerWithEmail(String name, String email, String password) async => null;
+  @override Future<AuthUser?> signInWithGoogle() async => null;
+  @override Future<AuthUser?> signInAnonymously() async => null;
+  @override Future<void> signOut() async {}
 }
 
 class _StubUseCase extends ExportRecipesToCsvUseCase {
@@ -25,12 +41,19 @@ class _StubUseCase extends ExportRecipesToCsvUseCase {
 }
 
 Widget _buildTestApp(Widget child) {
-  final provider = RecipeExportProvider(exportUseCase: _StubUseCase());
+  final exportProvider = RecipeExportProvider(exportUseCase: _StubUseCase());
+  final recipeProvider = RecipeProvider(repository: _StubRepo());
+  final authProvider = AuthProvider(repository: _StubAuthRepo());
+
   return ScreenUtilInit(
     designSize: const Size(375, 812),
     minTextAdapt: true,
-    builder: (context, _) => ChangeNotifierProvider<RecipeExportProvider>.value(
-      value: provider,
+    builder: (context, _) => MultiProvider(
+      providers: [
+        ChangeNotifierProvider<RecipeExportProvider>.value(value: exportProvider),
+        ChangeNotifierProvider<RecipeProvider>.value(value: recipeProvider),
+        ChangeNotifierProvider<AuthProvider>.value(value: authProvider),
+      ],
       child: MaterialApp(home: child),
     ),
   );
@@ -47,9 +70,7 @@ void main() {
       expect(find.text('Executive Chef'), findsOneWidget);
       expect(find.text('PRO'), findsOneWidget);
 
-      final avatarFinder = find.byType(CircleAvatar);
-      expect(avatarFinder, findsOneWidget);
-      final avatar = tester.widget<CircleAvatar>(avatarFinder);
+      final avatar = tester.widget<CircleAvatar>(find.byType(CircleAvatar));
       expect(avatar.backgroundImage, isA<AssetImage>());
       expect((avatar.backgroundImage as AssetImage).assetName, AssetManager.userAvatar);
     });

@@ -116,6 +116,10 @@ class _RecipeDetailsScreenState extends State<RecipeDetailsScreen> {
                 ),
                 AppSpacing.gapH8,
                 Text(_recipe.title, style: getBoldStyle(context: context, fontSize: FontSize.s22, color: onSurface)),
+                if (_recipe.subtitle.isNotEmpty) ...[
+                  AppSpacing.gapH4,
+                  Text(_recipe.subtitle, style: getMediumStyle(context: context, fontSize: FontSize.s14, color: AppColors.primary)),
+                ],
                 AppSpacing.gapH8,
                 Text(_recipe.description, style: getRegularStyle(context: context, fontSize: FontSize.s14, height: 1.45, color: theme.colorScheme.onSurfaceVariant)),
                 AppSpacing.gapH16,

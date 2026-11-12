@@ -13,6 +13,7 @@ void main() {
   Recipe createTestRecipe({
     String id = 'rec_1',
     String title = 'Garlic Butter Shrimp',
+    String subtitle = 'Quick skillet seafood',
     String description = 'Quick, savory shrimp sautéed in rich garlic butter sauce, finished with parsley.',
     String category = 'Seafood',
     int prepTimeMinutes = 10,
@@ -37,6 +38,7 @@ void main() {
     return Recipe(
       id: id,
       title: title,
+      subtitle: subtitle,
       description: description,
       category: category,
       prepTimeMinutes: prepTimeMinutes,
@@ -98,21 +100,40 @@ void main() {
       expect(dataRow[2], 'Authentic Roman pasta with guanciale, pecorino, and black pepper.');
       expect(dataRow[9], '200g guanciale, diced; 4 egg yolks, beaten');
     });
+  });
 
-    test('converts multiple recipes into corresponding number of rows', () {
-      final recipes = [
-        createTestRecipe(id: 'r1', title: 'Recipe 1'),
-        createTestRecipe(id: 'r2', title: 'Recipe 2'),
-        createTestRecipe(id: 'r3', title: 'Recipe 3'),
-      ];
+  group('RecipeCsvConverter Import & Parsing', () {
+    test('parses 7-column sample template correctly', () {
+      final sampleCsv = RecipeCsvConverter.generateSampleCsv();
+      final recipes = converter.parseFromCsv(sampleCsv);
 
-      final csvString = converter.convertToCsv(recipes);
-      final rows = const CsvToListConverter(eol: '\r\n').convert(csvString);
+      expect(recipes.length, 2);
+      expect(recipes[0].title, "Grandma's Carbonara");
+      expect(recipes[0].subtitle, 'Classic Roman Pasta');
+      expect(recipes[0].servings, 4);
+      expect(recipes[0].ingredients.length, 4);
+      expect(recipes[0].steps.length, 3);
+      expect(recipes[0].steps[0], 'Boil pasta in salted water');
 
-      expect(rows.length, 4); // 1 header + 3 items
-      expect(rows[1][0], 'r1');
-      expect(rows[2][0], 'r2');
-      expect(rows[3][0], 'r3');
+      expect(recipes[1].title, 'Lemon Herb Salmon');
+      expect(recipes[1].servings, 2);
+    });
+
+    test('round-trips 12-column exported recipes back through parseFromCsv', () {
+      final original = [createTestRecipe(id: 'rt_1', title: 'Roundtrip Recipe')];
+      final exportedCsv = converter.convertToCsv(original);
+      final imported = converter.parseFromCsv(exportedCsv);
+
+      expect(imported.length, 1);
+      expect(imported.first.id, 'rt_1');
+      expect(imported.first.title, 'Roundtrip Recipe');
+      expect(imported.first.ingredients.length, original.first.ingredients.length);
+    });
+
+    test('returns empty list for blank or header-only CSV', () {
+      expect(converter.parseFromCsv(''), isEmpty);
+      expect(converter.parseFromCsv('   \n  '), isEmpty);
+      expect(converter.parseFromCsv('Title,Subtitle,Ingredients\n'), isEmpty);
     });
   });
 }

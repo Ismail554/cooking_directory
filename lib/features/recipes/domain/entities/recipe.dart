@@ -1,6 +1,7 @@
 class Recipe {
   final String id;
   final String title;
+  final String subtitle;
   final String description;
   final String category;
   final int prepTimeMinutes;
@@ -16,6 +17,7 @@ class Recipe {
   const Recipe({
     required this.id,
     required this.title,
+    this.subtitle = '',
     required this.description,
     required this.category,
     required this.prepTimeMinutes,
@@ -32,6 +34,7 @@ class Recipe {
   Recipe copyWith({
     String? id,
     String? title,
+    String? subtitle,
     String? description,
     String? category,
     int? prepTimeMinutes,
@@ -47,6 +50,7 @@ class Recipe {
     return Recipe(
       id: id ?? this.id,
       title: title ?? this.title,
+      subtitle: subtitle ?? this.subtitle,
       description: description ?? this.description,
       category: category ?? this.category,
       prepTimeMinutes: prepTimeMinutes ?? this.prepTimeMinutes,

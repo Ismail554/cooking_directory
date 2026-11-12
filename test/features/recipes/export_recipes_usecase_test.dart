@@ -25,6 +25,12 @@ class MockRecipeRepository implements RecipeRepository {
     if (errorToThrow != null) throw errorToThrow!;
     return exportedPathToReturn;
   }
+
+  @override
+  Future<Recipe> addRecipe(Recipe recipe) async => recipe;
+
+  @override
+  Future<List<Recipe>> importRecipesFromCsv(String csvContent) async => [];
 }
 
 void main() {

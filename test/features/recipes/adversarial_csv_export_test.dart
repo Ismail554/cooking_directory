@@ -11,6 +11,10 @@ class StubRepo implements RecipeRepository {
   Future<List<Recipe>> getAllRecipes() async => recipes;
   @override
   Future<String> exportRecipesToCsv(List<Recipe> recipes) async => '/tmp/test.csv';
+  @override
+  Future<Recipe> addRecipe(Recipe recipe) async => recipe;
+  @override
+  Future<List<Recipe>> importRecipesFromCsv(String csvContent) async => [];
 }
 
 void main() {

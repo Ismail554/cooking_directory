@@ -5,6 +5,7 @@ class RecipeModel extends Recipe {
   const RecipeModel({
     required super.id,
     required super.title,
+    super.subtitle = '',
     required super.description,
     required super.category,
     required super.prepTimeMinutes,
@@ -23,6 +24,7 @@ class RecipeModel extends Recipe {
     return RecipeModel(
       id: json['id'] as String? ?? '',
       title: json['title'] as String? ?? '',
+      subtitle: json['subtitle'] as String? ?? '',
       description: json['description'] as String? ?? '',
       category: json['category'] as String? ?? 'General',
       prepTimeMinutes: (json['prepTimeMinutes'] as num?)?.toInt() ?? 0,
@@ -50,6 +52,7 @@ class RecipeModel extends Recipe {
     return {
       'id': id,
       'title': title,
+      'subtitle': subtitle,
       'description': description,
       'category': category,
       'prepTimeMinutes': prepTimeMinutes,
@@ -69,6 +72,7 @@ class RecipeModel extends Recipe {
     return RecipeModel(
       id: recipe.id,
       title: recipe.title,
+      subtitle: recipe.subtitle,
       description: recipe.description,
       category: recipe.category,
       prepTimeMinutes: recipe.prepTimeMinutes,
