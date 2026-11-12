@@ -40,6 +40,7 @@ void main() {
       addTearDown(tester.view.resetDevicePixelRatio);
 
       await tester.pumpWidget(_buildRouterApp());
+      AppRouter.router.go(AppRoutePaths.home);
       await tester.pumpAndSettle();
 
       expect(find.byType(NavigationBar), findsOneWidget);
@@ -56,6 +57,7 @@ void main() {
       addTearDown(tester.view.resetDevicePixelRatio);
 
       await tester.pumpWidget(_buildRouterApp());
+      AppRouter.router.go(AppRoutePaths.home);
       await tester.pumpAndSettle();
 
       await tester.tap(find.text('Expenses'));
@@ -137,8 +139,6 @@ void main() {
       addTearDown(tester.view.resetDevicePixelRatio);
 
       await tester.pumpWidget(_buildRouterApp());
-      await tester.pumpAndSettle();
-
       AppRouter.router.go('/non-existent-unknown-path');
       await tester.pumpAndSettle();
 
@@ -158,6 +158,7 @@ void main() {
       addTearDown(tester.view.resetDevicePixelRatio);
 
       await tester.pumpWidget(_buildRouterApp());
+      AppRouter.router.go(AppRoutePaths.home);
       await tester.pumpAndSettle();
 
       AppRouter.router.push('${AppRoutePaths.cookingMode}?title=Roast+Duck&id=duck1');

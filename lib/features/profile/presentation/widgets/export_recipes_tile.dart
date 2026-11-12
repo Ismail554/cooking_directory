@@ -15,12 +15,14 @@ class ExportRecipesTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final exportProvider = Provider.of<RecipeExportProvider?>(context);
     final isExporting = exportProvider?.isExporting ?? false;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final secColor = isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight;
 
     return ListTile(
       contentPadding: EdgeInsets.zero,
-      leading: const Icon(
+      leading: Icon(
         Icons.file_download_outlined,
-        color: AppColors.textPrimaryLight,
+        color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
       ),
       title: Text(
         'Export Recipes (CSV)',
@@ -34,7 +36,7 @@ class ExportRecipesTile extends StatelessWidget {
         style: getRegularStyle(
           context: context,
           fontSize: FontSize.s12,
-          color: AppColors.textSecondaryLight,
+          color: secColor,
         ),
       ),
       trailing: isExporting
@@ -46,7 +48,7 @@ class ExportRecipesTile extends StatelessWidget {
                 valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
               ),
             )
-          : const Icon(Icons.chevron_right_rounded, size: 20),
+          : Icon(Icons.chevron_right_rounded, size: 20, color: secColor),
       onTap: (isExporting || exportProvider == null)
           ? null
           : () => _handleExport(context, exportProvider),

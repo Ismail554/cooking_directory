@@ -59,6 +59,8 @@ class DefaultFirebaseOptions {
     messagingSenderId: '453421733668',
     projectId: 'cooking-directory-88438',
     storageBucket: 'cooking-directory-88438.firebasestorage.app',
+    androidClientId:
+        '453421733668-o882r7v0e5a8mtrfcqpvgql94ij1k1ut.apps.googleusercontent.com',
   );
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyC23aB82rCwFQh-dKKS5MJSy2mdEyAmtGI',
@@ -66,6 +68,8 @@ class DefaultFirebaseOptions {
     messagingSenderId: '453421733668',
     projectId: 'cooking-directory-88438',
     storageBucket: 'cooking-directory-88438.firebasestorage.app',
+    iosClientId:
+        '453421733668-3op8qpumtd2p3vs6hdbh0sp5mgceca1m.apps.googleusercontent.com',
     iosBundleId: 'com.ismail.chef',
   );
   static const FirebaseOptions windows = FirebaseOptions(

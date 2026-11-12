@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:cooking_directory/core/managers/asset_manager.dart';
+import 'package:cooking_directory/core/theme/theme_provider.dart';
 import 'package:cooking_directory/features/authentication/domain/entities/auth_user.dart';
 import 'package:cooking_directory/features/authentication/domain/repositories/auth_repository.dart';
 import 'package:cooking_directory/features/authentication/presentation/providers/auth_provider.dart';
@@ -40,10 +41,11 @@ class _StubUseCase extends ExportRecipesToCsvUseCase {
   Future<String> call({List<Recipe>? recipes}) async => '/stub/path.csv';
 }
 
-Widget _buildTestApp(Widget child) {
+Widget _buildTestApp(Widget child, {ThemeProvider? themeProvider}) {
   final exportProvider = RecipeExportProvider(exportUseCase: _StubUseCase());
   final recipeProvider = RecipeProvider(repository: _StubRepo());
   final authProvider = AuthProvider(repository: _StubAuthRepo());
+  final tp = themeProvider ?? ThemeProvider();
 
   return ScreenUtilInit(
     designSize: const Size(375, 812),
@@ -53,6 +55,7 @@ Widget _buildTestApp(Widget child) {
         ChangeNotifierProvider<RecipeExportProvider>.value(value: exportProvider),
         ChangeNotifierProvider<RecipeProvider>.value(value: recipeProvider),
         ChangeNotifierProvider<AuthProvider>.value(value: authProvider),
+        ChangeNotifierProvider<ThemeProvider>.value(value: tp),
       ],
       child: MaterialApp(home: child),
     ),
@@ -175,7 +178,9 @@ void main() {
       expect(switchFinder, findsOneWidget);
       await tester.tap(switchFinder);
       await tester.pumpAndSettle();
+      expect(find.text('Dark theme active'), findsOneWidget);
 
+      await tester.ensureVisible(find.text('Sign Out'));
       await tester.tap(find.text('Sign Out'));
       await tester.pumpAndSettle();
       expect(find.text('Are you sure you want to sign out of your chef profile?'), findsOneWidget);

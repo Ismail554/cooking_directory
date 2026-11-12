@@ -10,11 +10,14 @@ class ImportRecipesTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final secColor = isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight;
+
     return ListTile(
       contentPadding: EdgeInsets.zero,
-      leading: const Icon(
+      leading: Icon(
         Icons.file_upload_outlined,
-        color: AppColors.primary,
+        color: isDark ? AppColors.primaryLight : AppColors.primary,
       ),
       title: Text(
         'Import Recipes (CSV)',
@@ -28,12 +31,11 @@ class ImportRecipesTile extends StatelessWidget {
         style: getRegularStyle(
           context: context,
           fontSize: FontSize.s12,
-          color: AppColors.textSecondaryLight,
+          color: secColor,
         ),
       ),
-      trailing: const Icon(Icons.chevron_right_rounded, size: 20),
+      trailing: Icon(Icons.chevron_right_rounded, size: 20, color: secColor),
       onTap: () => CsvImportDialog.show(context),
     );
   }
 }
-

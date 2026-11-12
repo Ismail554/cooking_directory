@@ -7,31 +7,25 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:453421733668:android:7d8afb96172848ad49c5b1",
-        "android_client_info": {
-          "package_name": "com.example.cooking_directory"
-        }
-      },
-      "oauth_client": [],
-      "api_key": [
-        {
-          "current_key": "AIzaSyAT0L7k5ibsEE5DrDjaiuBQD0tAh54k-fY"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": []
-        }
-      }
-    },
-    {
-      "client_info": {
         "mobilesdk_app_id": "1:453421733668:android:d33c33011a410ffa49c5b1",
         "android_client_info": {
           "package_name": "com.ismail.chef"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "453421733668-o882r7v0e5a8mtrfcqpvgql94ij1k1ut.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.ismail.chef",
+            "certificate_hash": "b6a57d1f50e209bde458107221234e7f688dfe35"
+          }
+        },
+        {
+          "client_id": "453421733668-01cl1epvjhjguc7u1v3v0r19numbioit.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyAT0L7k5ibsEE5DrDjaiuBQD0tAh54k-fY"
@@ -39,7 +33,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "453421733668-01cl1epvjhjguc7u1v3v0r19numbioit.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "453421733668-3op8qpumtd2p3vs6hdbh0sp5mgceca1m.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.ismail.chef"
+              }
+            }
+          ]
         }
       }
     }

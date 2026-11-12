@@ -1,1 +1,35 @@
-{"firestore":{"rules":"firestore.rules"},"auth":{"providers":{"anonymous":true,"emailPassword":true}},"flutter":{"platforms":{"android":{"default":{"projectId":"cooking-directory-88438","appId":"1:453421733668:android:d33c33011a410ffa49c5b1","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"cooking-directory-88438","configurations":{"android":"1:453421733668:android:d33c33011a410ffa49c5b1","ios":"1:453421733668:ios:63deb2e8c97fd99349c5b1"}}}}}}
+{
+  "firestore": {
+    "rules": "firestore.rules"
+  },
+  "auth": {
+    "providers": {
+      "anonymous": true,
+      "emailPassword": true,
+      "googleSignIn": {
+        "oAuthBrandDisplayName": "Cooking Directory",
+        "supportEmail": "ismailshuvo555@gmail.com"
+      }
+    }
+  },
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "cooking-directory-88438",
+          "appId": "1:453421733668:android:d33c33011a410ffa49c5b1",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "cooking-directory-88438",
+          "configurations": {
+            "android": "1:453421733668:android:d33c33011a410ffa49c5b1",
+            "ios": "1:453421733668:ios:63deb2e8c97fd99349c5b1"
+          }
+        }
+      }
+    }
+  }
+}

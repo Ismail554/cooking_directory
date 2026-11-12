@@ -9,11 +9,13 @@ import '../../../../core/managers/value_manager.dart';
 class GoogleSignInButton extends StatelessWidget {
   final VoidCallback? onPressed;
   final bool isLoading;
+  final String label;
 
   const GoogleSignInButton({
     super.key,
     required this.onPressed,
     this.isLoading = false,
+    this.label = 'Sign in with Google',
   });
 
   @override
@@ -22,7 +24,7 @@ class GoogleSignInButton extends StatelessWidget {
 
     return OutlinedButton(
       style: OutlinedButton.styleFrom(
-        padding: EdgeInsets.symmetric(vertical: 12.h),
+        padding: EdgeInsets.symmetric(vertical: 12.h, horizontal: 16.w),
         shape: RoundedRectangleBorder(borderRadius: AppBorderRadius.r12),
         side: BorderSide(
           color: isDark ? AppColors.borderDark : AppColors.borderLight,
@@ -35,22 +37,24 @@ class GoogleSignInButton extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Container(
-            width: 22.r,
-            height: 22.r,
-            decoration: const BoxDecoration(
+            width: 24.r,
+            height: 24.r,
+            decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: AppColors.primary,
+              color: isDark ? Colors.white : AppColors.primary.withValues(alpha: 0.12),
             ),
-            child: Center(
-              child: Text(
-                'G',
-                style: getBoldStyle(fontSize: FontSize.s14, color: Colors.white),
+            alignment: Alignment.center,
+            child: Text(
+              'G',
+              style: getBoldStyle(
+                fontSize: FontSize.s14,
+                color: AppColors.primary,
               ),
             ),
           ),
           AppSpacing.gapW12,
           Text(
-            'Continue with Google',
+            label,
             style: getSemiBoldStyle(
               fontSize: FontSize.s14,
               color: isDark ? Colors.white : AppColors.textPrimaryLight,

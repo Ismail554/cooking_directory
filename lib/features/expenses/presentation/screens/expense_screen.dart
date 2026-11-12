@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 import 'package:cooking_directory/core/constants/app_spacing.dart';
 import 'package:cooking_directory/core/managers/app_colors.dart';
 import 'package:cooking_directory/core/managers/asset_manager.dart';
@@ -8,11 +9,13 @@ import 'package:cooking_directory/core/managers/font_manager.dart';
 import 'package:cooking_directory/core/managers/style_manager.dart';
 import 'package:cooking_directory/core/managers/value_manager.dart';
 import 'package:cooking_directory/core/routing/route_paths.dart';
+import 'package:cooking_directory/core/theme/theme_provider.dart';
 import 'package:cooking_directory/core/widgets/app_empty_view.dart';
+import 'package:cooking_directory/core/widgets/custom_snackbar.dart';
 
 typedef _ExpenseData = ({String title, String category, String date, double amount, IconData icon, Color color});
 
-/// Food expenses tracking screen with budget progress, filters, and logs.
+/// Food expenses tracking screen with dynamic budget progress, filters, and logs.
 class ExpenseScreen extends StatefulWidget {
   const ExpenseScreen({super.key});
 
@@ -23,7 +26,7 @@ class ExpenseScreen extends StatefulWidget {
 class _ExpenseScreenState extends State<ExpenseScreen> {
   static const _categories = ['All', 'Groceries', 'Dining Out', 'Kitchen Tools', 'Spices', 'Delivery', 'Snacks'];
 
-  static const List<_ExpenseData> _allExpenses = [
+  static const List<_ExpenseData> _seedExpenses = [
     (title: 'Supermarket Groceries', category: 'Groceries', date: 'Today, 2:30 PM', amount: 145.80, icon: Icons.local_grocery_store_outlined, color: AppColors.expenseGroceries),
     (title: 'Trattoria Pasta Dinner', category: 'Dining Out', date: 'Yesterday, 8:15 PM', amount: 68.00, icon: Icons.restaurant_outlined, color: AppColors.expenseDiningOut),
     (title: 'Chef Knife & Whetstone', category: 'Kitchen Tools', date: 'Nov 8, 2026', amount: 125.00, icon: Icons.hardware_outlined, color: AppColors.expenseEquipment),
@@ -32,13 +35,37 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
     (title: 'Organic Farm Veggies', category: 'Groceries', date: 'Oct 30, 2026', amount: 84.20, icon: Icons.local_grocery_store_outlined, color: AppColors.expenseGroceries),
   ];
 
+  late final List<_ExpenseData> _expenses = List.from(_seedExpenses);
   String _selectedCategory = 'All';
+
+  Future<void> _openAddExpense() async {
+    final result = await context.push<Map<String, dynamic>>(AppRoutePaths.addExpense);
+    if (result != null && mounted) {
+      final title = (result['title'] as String?) ?? 'Expense';
+      final amount = (result['amount'] as num?)?.toDouble() ?? 0.0;
+      final category = (result['category'] as String?) ?? 'Groceries';
+      setState(() {
+        _expenses.insert(0, (title: title, category: category, date: 'Just now', amount: amount, icon: Icons.receipt_long_outlined, color: AppColors.primary));
+      });
+      CustomSnackbar.showSuccess(context, 'Added "$title" to expenses');
+    }
+  }
+
+  String _fmtWhole(double v, String sym) {
+    final str = v.round().toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},');
+    return '$sym$str';
+  }
 
   @override
   Widget build(BuildContext context) {
-    final list = _selectedCategory == 'All'
-        ? _allExpenses
-        : _allExpenses.where((e) => e.category == _selectedCategory).toList();
+    final tp = context.watch<ThemeProvider?>();
+    final budget = tp?.monthlyBudget ?? 1200.0;
+    final sym = tp?.currencySymbol ?? '\$';
+    final spent = _expenses.fold<double>(0.0, (sum, e) => sum + e.amount);
+    final remaining = (budget - spent).clamp(0.0, double.infinity);
+    final ratio = budget > 0 ? (spent / budget).clamp(0.0, 1.0) : 0.0;
+
+    final list = _selectedCategory == 'All' ? _expenses : _expenses.where((e) => e.category == _selectedCategory).toList();
 
     return Scaffold(
       appBar: AppBar(
@@ -54,7 +81,7 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
         child: ListView(
           padding: AppSpacing.screenPadding,
           children: [
-            _buildBudgetCard(),
+            _buildBudgetCard(budget, spent, remaining, ratio, sym),
             AppSpacing.gapH20,
             _buildCategoryFilters(),
             AppSpacing.gapH20,
@@ -66,70 +93,53 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
                 title: 'No Expenses Found',
                 message: 'No expenses logged for "$_selectedCategory".',
                 actionLabel: 'Add Expense',
-                onAction: () => context.push(AppRoutePaths.addExpense),
+                onAction: _openAddExpense,
               )
             else
-              ...list.map((item) => Padding(padding: const EdgeInsets.only(bottom: 8), child: _buildExpenseTile(item))),
+              ...list.map((item) => Padding(padding: const EdgeInsets.only(bottom: 8), child: _buildExpenseTile(item, sym))),
           ],
         ),
       ),
       floatingActionButton: FloatingActionButton(
         heroTag: 'add_expense_fab',
-        onPressed: () => context.push(AppRoutePaths.addExpense),
+        onPressed: _openAddExpense,
         backgroundColor: AppColors.primary,
         child: const Icon(Icons.add_rounded, color: Colors.white),
       ),
     );
   }
 
-  Widget _buildBudgetCard() {
+  Widget _buildBudgetCard(double budget, double spent, double remaining, double ratio, String sym) {
+    final pct = (ratio * 100).round();
     return Container(
       padding: AppSpacing.cardPadding,
-      decoration: BoxDecoration(
-        gradient: AppColors.primaryGradient,
-        borderRadius: AppBorderRadius.r16,
-        boxShadow: const [AppColors.culinaryCardShadow],
-      ),
+      decoration: BoxDecoration(gradient: AppColors.primaryGradient, borderRadius: AppBorderRadius.r16, boxShadow: const [AppColors.culinaryCardShadow]),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Expanded(
-                child: Text(
-                  'Monthly Food Budget',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: getMediumStyle(fontSize: FontSize.s13, color: Colors.white70),
-                ),
-              ),
+              Expanded(child: Text('Monthly Food Budget', maxLines: 1, overflow: TextOverflow.ellipsis, style: getMediumStyle(fontSize: FontSize.s13, color: Colors.white70))),
               AppSpacing.gapW8,
               Container(
                 padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 2.h),
                 decoration: BoxDecoration(color: Colors.white24, borderRadius: AppBorderRadius.r8),
-                child: Text('40% spent', style: getBoldStyle(fontSize: FontSize.s11, color: Colors.white)),
+                child: Text('$pct% spent', style: getBoldStyle(fontSize: FontSize.s11, color: Colors.white)),
               ),
             ],
           ),
           AppSpacing.gapH12,
           ClipRRect(
             borderRadius: AppBorderRadius.circular,
-            child: const LinearProgressIndicator(
-              value: 0.40,
-              backgroundColor: Colors.white24,
-              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-              minHeight: 8,
-            ),
+            child: LinearProgressIndicator(value: ratio, backgroundColor: Colors.white24, valueColor: const AlwaysStoppedAnimation<Color>(Colors.white), minHeight: 8),
           ),
           AppSpacing.gapH16,
-          Row(
-            children: [
-              _metric('Total Budget', '\$1,200'),
-              _metric('Spent', '\$480'),
-              _metric('Remaining', '\$720'),
-            ],
-          ),
+          Row(children: [
+            _metric('Total Budget', _fmtWhole(budget, sym)),
+            _metric('Spent', _fmtWhole(spent, sym)),
+            _metric('Remaining', _fmtWhole(remaining, sym)),
+          ]),
         ],
       ),
     );
@@ -169,20 +179,17 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
     );
   }
 
-  Widget _buildExpenseTile(_ExpenseData item) {
+  Widget _buildExpenseTile(_ExpenseData item, String sym) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Card(
       elevation: AppElevation.e0,
       color: isDark ? AppColors.surfaceVariantDark : AppColors.surfaceVariantLight,
       shape: RoundedRectangleBorder(borderRadius: AppBorderRadius.r12),
       child: ListTile(
-        leading: CircleAvatar(
-          backgroundColor: item.color.withValues(alpha: 0.15),
-          child: Icon(item.icon, color: item.color),
-        ),
+        leading: CircleAvatar(backgroundColor: item.color.withValues(alpha: 0.15), child: Icon(item.icon, color: item.color)),
         title: Text(item.title, style: getSemiBoldStyle(context: context, fontSize: FontSize.s14)),
-        subtitle: Text('${item.category} • ${item.date}', style: getRegularStyle(context: context, fontSize: FontSize.s12, color: AppColors.textSecondaryLight)),
-        trailing: Text('-\$${item.amount.toStringAsFixed(2)}', style: getBoldStyle(context: context, fontSize: FontSize.s14, color: AppColors.primary)),
+        subtitle: Text('${item.category} • ${item.date}', style: getRegularStyle(context: context, fontSize: FontSize.s12, color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight)),
+        trailing: Text('-$sym${item.amount.toStringAsFixed(2)}', style: getBoldStyle(context: context, fontSize: FontSize.s14, color: isDark ? AppColors.primaryLight : AppColors.primary)),
       ),
     );
   }

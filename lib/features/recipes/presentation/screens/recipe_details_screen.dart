@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 import 'package:cooking_directory/core/constants/app_spacing.dart';
 import 'package:cooking_directory/core/managers/app_colors.dart';
 import 'package:cooking_directory/core/managers/asset_manager.dart';
@@ -9,8 +10,10 @@ import 'package:cooking_directory/core/managers/style_manager.dart';
 import 'package:cooking_directory/core/managers/value_manager.dart';
 import 'package:cooking_directory/core/routing/route_paths.dart';
 import 'package:cooking_directory/core/widgets/app_button.dart';
+import 'package:cooking_directory/core/widgets/custom_snackbar.dart';
 import 'package:cooking_directory/features/recipes/data/datasources/recipe_local_datasource.dart';
 import 'package:cooking_directory/features/recipes/domain/entities/recipe.dart';
+import 'package:cooking_directory/features/recipes/presentation/providers/recipe_provider.dart';
 import 'package:cooking_directory/features/recipes/presentation/widgets/ingredients_checklist.dart';
 import 'package:cooking_directory/features/recipes/presentation/widgets/instructions_timeline.dart';
 import 'package:cooking_directory/features/recipes/presentation/widgets/recipe_stats_bar.dart';
@@ -66,6 +69,15 @@ class _RecipeDetailsScreenState extends State<RecipeDetailsScreen> {
 
   Future<void> _loadRecipe() async {
     try {
+      final provider = context.read<RecipeProvider?>();
+      if (provider != null && provider.allRecipes.isNotEmpty) {
+        final match = provider.allRecipes.firstWhere(
+          (r) => r.id == widget.recipeId || (widget.recipeId == null && r.title == widget.title),
+          orElse: () => provider.allRecipes.first,
+        );
+        if (mounted) setState(() { _recipe = match; _isFavorite = _recipe.isFavorite; });
+        return;
+      }
       final recipes = await const RecipeLocalDataSourceImpl().getSeedRecipes();
       final match = recipes.firstWhere(
         (r) => r.id == widget.recipeId || (widget.recipeId == null && r.title == widget.title),
@@ -73,6 +85,11 @@ class _RecipeDetailsScreenState extends State<RecipeDetailsScreen> {
       );
       if (mounted) setState(() { _recipe = match.toEntity(); _isFavorite = _recipe.isFavorite; });
     } catch (_) {}
+  }
+
+  void _toggleFavorite() {
+    setState(() => _isFavorite = !_isFavorite);
+    context.read<RecipeProvider?>()?.toggleFavorite(_recipe.id);
   }
 
   @override
@@ -91,7 +108,7 @@ class _RecipeDetailsScreenState extends State<RecipeDetailsScreen> {
               _buildCircleAction(
                 icon: _isFavorite ? Icons.bookmark_rounded : Icons.bookmark_border_rounded,
                 iconColor: _isFavorite ? AppColors.accent : Colors.white,
-                onTap: () => setState(() => _isFavorite = !_isFavorite),
+                onTap: _toggleFavorite,
               ),
               AppSpacing.gapW12,
             ],
@@ -112,7 +129,7 @@ class _RecipeDetailsScreenState extends State<RecipeDetailsScreen> {
                 Container(
                   padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
                   decoration: BoxDecoration(color: AppColors.primaryContainer, borderRadius: AppBorderRadius.r12),
-                  child: Text(_recipe.category, style: getBoldStyle(context: context, fontSize: FontSize.s12, color: AppColors.primary)),
+                  child: Text(_recipe.category, style: getBoldStyle(fontSize: FontSize.s12, color: AppColors.primaryDark)),
                 ),
                 AppSpacing.gapH8,
                 Text(_recipe.title, style: getBoldStyle(context: context, fontSize: FontSize.s22, color: onSurface)),
@@ -127,7 +144,10 @@ class _RecipeDetailsScreenState extends State<RecipeDetailsScreen> {
                 AppSpacing.gapH24,
                 IngredientsChecklist(ingredients: _recipe.ingredients, initialServings: _recipe.servings),
                 AppSpacing.gapH24,
-                InstructionsTimeline(steps: _recipe.steps),
+                InstructionsTimeline(
+                  steps: _recipe.steps,
+                  onStartTimer: (idx, mins) => CustomSnackbar.showSuccess(context, 'Started $mins min timer for Step ${idx + 1}'),
+                ),
                 AppSpacing.gapH32,
               ]),
             ),

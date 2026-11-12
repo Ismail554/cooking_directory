@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import '../models/recipe_model.dart';
 
@@ -10,19 +11,40 @@ abstract class RecipeRemoteDataSource {
 }
 
 class RecipeRemoteDataSourceImpl implements RecipeRemoteDataSource {
-  final FirebaseFirestore _firestore;
-  final FirebaseAuth _auth;
+  final FirebaseFirestore? _injectedFirestore;
+  final FirebaseAuth? _injectedAuth;
 
   RecipeRemoteDataSourceImpl({
     FirebaseFirestore? firestore,
     FirebaseAuth? auth,
-  })  : _firestore = firestore ?? FirebaseFirestore.instance,
-        _auth = auth ?? FirebaseAuth.instance;
+  })  : _injectedFirestore = firestore,
+        _injectedAuth = auth;
+
+  FirebaseFirestore? get _firestore {
+    if (_injectedFirestore != null) return _injectedFirestore;
+    if (Firebase.apps.isEmpty) return null;
+    try {
+      return FirebaseFirestore.instance;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  FirebaseAuth? get _auth {
+    if (_injectedAuth != null) return _injectedAuth;
+    if (Firebase.apps.isEmpty) return null;
+    try {
+      return FirebaseAuth.instance;
+    } catch (_) {
+      return null;
+    }
+  }
 
   CollectionReference<Map<String, dynamic>>? _getUserRecipesCollection() {
-    final user = _auth.currentUser;
-    if (user == null) return null;
-    return _firestore.collection('users').doc(user.uid).collection('recipes');
+    final user = _auth?.currentUser;
+    final firestore = _firestore;
+    if (user == null || firestore == null) return null;
+    return firestore.collection('users').doc(user.uid).collection('recipes');
   }
 
   @override
@@ -30,7 +52,7 @@ class RecipeRemoteDataSourceImpl implements RecipeRemoteDataSource {
     try {
       final col = _getUserRecipesCollection();
       if (col == null) return [];
-      final snapshot = await col.get();
+      final snapshot = await col.get().timeout(const Duration(seconds: 3));
       return snapshot.docs
           .map((doc) => RecipeModel.fromJson(doc.data()))
           .toList();
@@ -47,7 +69,10 @@ class RecipeRemoteDataSourceImpl implements RecipeRemoteDataSource {
     try {
       final col = _getUserRecipesCollection();
       if (col != null) {
-        await col.doc(recipe.id).set(recipe.toJson(), SetOptions(merge: true));
+        await col
+            .doc(recipe.id)
+            .set(recipe.toJson(), SetOptions(merge: true))
+            .timeout(const Duration(seconds: 3));
       }
     } catch (e) {
       if (kDebugMode) {
@@ -63,4 +88,3 @@ class RecipeRemoteDataSourceImpl implements RecipeRemoteDataSource {
     }
   }
 }
-

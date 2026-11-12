@@ -41,9 +41,10 @@ void main() {
       addTearDown(tester.view.resetDevicePixelRatio);
 
       await tester.pumpWidget(_buildAdversarialApp());
+      AppRouter.router.go(AppRoutePaths.home);
       await tester.pumpAndSettle();
 
-      // Route 1: Home (initial)
+      // Route 1: Home
       expect(find.byType(HomeScreen), findsOneWidget);
 
       // Route 2: Expenses
@@ -90,8 +91,6 @@ void main() {
       addTearDown(tester.view.resetDevicePixelRatio);
 
       await tester.pumpWidget(_buildAdversarialApp());
-      await tester.pumpAndSettle();
-
       AppRouter.router.go('/deep/nested/404/invalid/endpoint');
       await tester.pumpAndSettle();
 
@@ -112,6 +111,7 @@ void main() {
       addTearDown(tester.view.resetDevicePixelRatio);
 
       await tester.pumpWidget(_buildAdversarialApp());
+      AppRouter.router.go(AppRoutePaths.home);
       await tester.pumpAndSettle();
 
       // Go to Expenses tab

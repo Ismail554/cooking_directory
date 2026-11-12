@@ -76,7 +76,9 @@ class AppShell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     final unselectedColor = theme.colorScheme.onSurfaceVariant;
+    final selectedColor = isDark ? AppColors.primaryLight : AppColors.primary;
     final isHomeTab = navigationShell.currentIndex == 1;
 
     return PopScope(
@@ -92,7 +94,9 @@ class AppShell extends StatelessWidget {
         bottomNavigationBar: NavigationBar(
           selectedIndex: navigationShell.currentIndex,
           onDestinationSelected: _onDestinationSelected,
-          indicatorColor: AppColors.primaryContainer,
+          indicatorColor: isDark
+              ? AppColors.primary.withValues(alpha: 0.25)
+              : AppColors.primaryContainer,
           destinations: [
             NavigationDestination(
               icon: _buildImageIcon(
@@ -103,7 +107,7 @@ class AppShell extends StatelessWidget {
               selectedIcon: _buildImageIcon(
                 assetPath: AssetManager.icExpense,
                 fallbackIcon: Icons.account_balance_wallet_rounded,
-                color: AppColors.primary,
+                color: selectedColor,
               ),
               label: 'Expenses',
             ),
@@ -116,7 +120,7 @@ class AppShell extends StatelessWidget {
               selectedIcon: _buildImageIcon(
                 assetPath: AssetManager.icRecipe,
                 fallbackIcon: Icons.restaurant_menu_rounded,
-                color: AppColors.primary,
+                color: selectedColor,
               ),
               label: 'Recipes',
             ),
@@ -126,7 +130,7 @@ class AppShell extends StatelessWidget {
                 isSelected: false,
               ),
               selectedIcon: _buildAvatarIcon(
-                fallbackColor: AppColors.primary,
+                fallbackColor: selectedColor,
                 isSelected: true,
               ),
               label: 'Profile',

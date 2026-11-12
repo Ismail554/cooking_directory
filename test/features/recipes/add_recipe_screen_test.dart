@@ -73,6 +73,60 @@ void main() {
       expect(find.byType(CsvImportDialog), findsOneWidget);
       expect(find.text('Load Sample'), findsOneWidget);
     });
+
+    testWidgets('adds instruction step with # note and displays note tag', (tester) async {
+      tester.view.physicalSize = const Size(1125, 2436);
+      tester.view.devicePixelRatio = 3.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(_buildTestApp(const AddRecipeScreen()));
+      await tester.pumpAndSettle();
+
+      final instField = find.widgetWithText(TextField, 'Step instruction (e.g. Crisp guanciale in pan)');
+      final noteField = find.widgetWithText(TextField, 'Optional note / #tag (e.g. # Chef Tip: Render slowly)');
+
+      await tester.enterText(instField, 'Crisp guanciale in skillet');
+      await tester.enterText(noteField, '# Chef Tip: Render slowly on low heat');
+      await tester.tap(find.text('Add Step to Recipe'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Instructions / Steps (1)'), findsOneWidget);
+      expect(find.text('Crisp guanciale in skillet'), findsOneWidget);
+      expect(find.text('# Chef Tip: Render slowly on low heat'), findsOneWidget);
+    });
+
+    testWidgets('supports selecting multiple quick tag chips and auto-commits pending step on Save', (tester) async {
+      tester.view.physicalSize = const Size(1125, 2436);
+      tester.view.devicePixelRatio = 3.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      final fakeRepo = _FakeRecipeRepo();
+      final provider = RecipeProvider(repository: fakeRepo);
+      await tester.pumpWidget(_buildTestApp(const AddRecipeScreen(), provider: provider));
+      await tester.pumpAndSettle();
+
+      await tester.enterText(find.widgetWithText(TextFormField, 'Recipe Title'), 'Authentic Carbonara');
+      await tester.enterText(
+        find.widgetWithText(TextField, 'e.g. 200g spaghetti'),
+        '200g Spaghetti',
+      );
+      await tester.enterText(
+        find.widgetWithText(TextField, 'Step instruction (e.g. Crisp guanciale in pan)'),
+        'Toss pasta with egg and pecorino off heat',
+      );
+
+      await tester.tap(find.widgetWithText(FilterChip, '# Low Heat'));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.widgetWithText(AppButton, 'Save Recipe'));
+      await tester.pumpAndSettle();
+
+      expect(fakeRepo.added, hasLength(1));
+      expect(fakeRepo.added.first.ingredients, ['200g Spaghetti']);
+      expect(fakeRepo.added.first.steps.first, contains('# Low Heat'));
+    });
   });
 }
 

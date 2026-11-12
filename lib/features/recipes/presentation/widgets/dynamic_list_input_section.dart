@@ -28,11 +28,19 @@ class DynamicListInputSection extends StatefulWidget {
 
   @override
   State<DynamicListInputSection> createState() =>
-      _DynamicListInputSectionState();
+      DynamicListInputSectionState();
 }
 
-class _DynamicListInputSectionState extends State<DynamicListInputSection> {
+class DynamicListInputSectionState extends State<DynamicListInputSection> {
   final _controller = TextEditingController();
+
+  /// Commits any pending text in the input field into the list.
+  bool commitPending() {
+    final text = _controller.text.trim();
+    if (text.isEmpty) return false;
+    _handleAdd();
+    return true;
+  }
 
   void _handleAdd() {
     final text = _controller.text.trim();
@@ -112,7 +120,7 @@ class _DynamicListInputSectionState extends State<DynamicListInputSection> {
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             itemCount: widget.items.length,
-            separatorBuilder: (_, __) => AppSpacing.gapH4,
+            separatorBuilder: (_, _) => AppSpacing.gapH4,
             itemBuilder: (context, index) {
               final prefix = widget.isNumbered ? '${index + 1}. ' : '• ';
               return Container(
@@ -155,4 +163,3 @@ class _DynamicListInputSectionState extends State<DynamicListInputSection> {
     );
   }
 }
-

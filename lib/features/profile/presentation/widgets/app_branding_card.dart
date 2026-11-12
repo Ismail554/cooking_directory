@@ -56,7 +56,9 @@ class AppBrandingCard extends StatelessWidget {
                   style: getRegularStyle(
                     context: context,
                     fontSize: FontSize.s12,
-                    color: AppColors.textSecondaryLight,
+                    color: isDark
+                        ? AppColors.textSecondaryDark
+                        : AppColors.textSecondaryLight,
                   ),
                 ),
               ],

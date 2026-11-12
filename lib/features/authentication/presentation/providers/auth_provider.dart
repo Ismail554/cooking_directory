@@ -17,7 +17,15 @@ class AuthProvider extends ChangeNotifier {
   }) : _repository = repository ?? FirebaseAuthRepository() {
     _currentUser = _repository.currentUser;
     _userSub = _repository.authStateChanges.listen((user) {
-      _currentUser = user;
+      if (user != null &&
+          (user.displayName == null || user.displayName!.isEmpty) &&
+          _currentUser?.displayName != null &&
+          _currentUser!.displayName!.isNotEmpty &&
+          user.uid == _currentUser!.uid) {
+        _currentUser = user.copyWith(displayName: _currentUser!.displayName);
+      } else {
+        _currentUser = user;
+      }
       notifyListeners();
     });
   }
@@ -32,6 +40,13 @@ class AuthProvider extends ChangeNotifier {
   String? get photoUrl => _currentUser?.photoUrl;
   String? get displayName => _currentUser?.displayName;
   String? get email => _currentUser?.email;
+
+  void clearError() {
+    if (_errorMessage != null) {
+      _errorMessage = null;
+      notifyListeners();
+    }
+  }
 
   Future<String?> getFreshToken() async {
     final token = await _repository.getIdToken(forceRefresh: true);
@@ -64,6 +79,10 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
     try {
       _currentUser = await _repository.signInWithEmail(email, password);
+      if (_currentUser == null) {
+        _errorMessage = 'Unable to sign in with the provided credentials.';
+        return false;
+      }
       return true;
     } catch (e) {
       _errorMessage = _cleanError(e);
@@ -80,6 +99,10 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
     try {
       _currentUser = await _repository.registerWithEmail(name, email, password);
+      if (_currentUser == null) {
+        _errorMessage = 'Could not create account. Please try again.';
+        return false;
+      }
       return true;
     } catch (e) {
       _errorMessage = _cleanError(e);
@@ -96,7 +119,7 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
     try {
       _currentUser = await _repository.signInAnonymously();
-      return true;
+      return _currentUser != null;
     } catch (e) {
       _errorMessage = _cleanError(e);
       return false;
@@ -107,9 +130,16 @@ class AuthProvider extends ChangeNotifier {
   }
 
   Future<void> signOut() async {
-    await _repository.signOut();
-    _currentUser = null;
+    _isLoading = true;
+    _errorMessage = null;
     notifyListeners();
+    try {
+      await _repository.signOut();
+    } finally {
+      _currentUser = null;
+      _isLoading = false;
+      notifyListeners();
+    }
   }
 
   String _cleanError(Object e) {

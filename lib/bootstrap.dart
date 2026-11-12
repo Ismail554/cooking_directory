@@ -13,14 +13,24 @@ Future<void> bootstrap() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Initialize Firebase with platform-specific options
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+  } catch (e) {
+    if (kDebugMode) debugPrint('Firebase initialization notice: $e');
+  }
 
-  // Initialize Google Sign In for mobile if supported
+  // Initialize Google Sign In for mobile with Web & iOS OAuth client IDs
   if (!kIsWeb) {
     try {
-      await GoogleSignIn.instance.initialize();
+      await GoogleSignIn.instance.initialize(
+        clientId: defaultTargetPlatform == TargetPlatform.iOS
+            ? '453421733668-3op8qpumtd2p3vs6hdbh0sp5mgceca1m.apps.googleusercontent.com'
+            : null,
+        serverClientId:
+            '453421733668-01cl1epvjhjguc7u1v3v0r19numbioit.apps.googleusercontent.com',
+      );
     } catch (e) {
       if (kDebugMode) debugPrint('GoogleSignIn initialization notice: $e');
     }

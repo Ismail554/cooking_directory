@@ -5,13 +5,16 @@ import 'package:cooking_directory/core/routing/route_names.dart';
 import 'package:cooking_directory/core/routing/route_paths.dart';
 import 'package:cooking_directory/core/widgets/app_error_view.dart';
 import 'package:cooking_directory/features/app_shell/presentation/screens/app_shell.dart';
+import 'package:cooking_directory/features/authentication/presentation/screens/auth_screen.dart';
 import 'package:cooking_directory/features/cooking_mode/presentation/screens/cooking_mode_screen.dart';
 import 'package:cooking_directory/features/expenses/presentation/screens/add_expense_screen.dart';
 import 'package:cooking_directory/features/expenses/presentation/screens/expense_screen.dart';
 import 'package:cooking_directory/features/home/presentation/screens/home_screen.dart';
+import 'package:cooking_directory/features/onboarding/presentation/screens/onboarding_screen.dart';
 import 'package:cooking_directory/features/profile/presentation/screens/profile_screen.dart';
 import 'package:cooking_directory/features/recipes/presentation/screens/add_recipe_screen.dart';
 import 'package:cooking_directory/features/recipes/presentation/screens/recipe_details_screen.dart';
+import 'package:cooking_directory/features/splash/presentation/screens/splash_screen.dart';
 
 final GlobalKey<NavigatorState> rootNavigatorKey =
     GlobalKey<NavigatorState>(debugLabel: 'rootNav');
@@ -25,7 +28,7 @@ final GlobalKey<NavigatorState> _profileTabKey =
 abstract final class AppRouter {
   static final GoRouter router = GoRouter(
     navigatorKey: rootNavigatorKey,
-    initialLocation: AppRoutePaths.home,
+    initialLocation: AppRoutePaths.splash,
     errorBuilder: (context, state) => Scaffold(
       body: AppErrorView(
         title: 'Page Not Found',
@@ -34,6 +37,36 @@ abstract final class AppRouter {
       ),
     ),
     routes: [
+      GoRoute(
+        parentNavigatorKey: rootNavigatorKey,
+        path: AppRoutePaths.splash,
+        name: AppRouteNames.splash,
+        pageBuilder: (context, state) => PageTransitions.cupertino(
+          state: state,
+          child: const SplashScreen(),
+        ),
+      ),
+      GoRoute(
+        parentNavigatorKey: rootNavigatorKey,
+        path: AppRoutePaths.onboarding,
+        name: AppRouteNames.onboarding,
+        pageBuilder: (context, state) => PageTransitions.cupertino(
+          state: state,
+          child: const OnboardingScreen(),
+        ),
+      ),
+      GoRoute(
+        parentNavigatorKey: rootNavigatorKey,
+        path: AppRoutePaths.auth,
+        name: AppRouteNames.auth,
+        pageBuilder: (context, state) {
+          final isRegister = state.uri.queryParameters['mode'] == 'register';
+          return PageTransitions.cupertino(
+            state: state,
+            child: AuthScreen(initialIsLogin: !isRegister),
+          );
+        },
+      ),
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) {
           return AppShell(navigationShell: navigationShell);

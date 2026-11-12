@@ -1,5 +1,10 @@
 /// Centralized route paths for GoRouter.
 abstract final class AppRoutePaths {
+  // Entry & Auth Flow
+  static const String splash = '/splash';
+  static const String onboarding = '/onboarding';
+  static const String auth = '/auth';
+
   // Main Tab Destinations
   static const String home = '/';
   static const String expenses = '/expenses';
