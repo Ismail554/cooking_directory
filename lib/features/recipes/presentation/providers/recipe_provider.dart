@@ -67,8 +67,13 @@ class RecipeProvider extends ChangeNotifier {
       if (remoteList.isEmpty) return;
       final Map<String, Recipe> merged = {
         for (final r in _recipes) r.id: r,
-        for (final r in remoteList) r.id: r,
       };
+      for (final r in remoteList) {
+        final local = merged[r.id];
+        merged[r.id] = (r.imageUrl.isEmpty && local != null && local.imageUrl.isNotEmpty)
+            ? r.copyWith(imageUrl: local.imageUrl)
+            : r;
+      }
       _recipes = merged.values.toList();
       notifyListeners();
     }, onError: (_) {});

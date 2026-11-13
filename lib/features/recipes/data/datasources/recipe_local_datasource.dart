@@ -25,7 +25,7 @@ class RecipeLocalDataSourceImpl implements RecipeLocalDataSource {
     final existing = _cacheByUid[_activeUid];
     if (existing != null) return existing;
     final raw = await LocalJsonStore.readList(_fileName);
-    final loaded = raw != null && raw.isNotEmpty
+    final loaded = raw != null
         ? raw.map(RecipeModel.fromJson).toList()
         : List<RecipeModel>.from(kSeedRecipes);
     _cacheByUid[_activeUid] = loaded;

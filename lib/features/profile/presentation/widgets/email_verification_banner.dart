@@ -68,3 +68,4 @@ class EmailVerificationBanner extends StatelessWidget {
     );
   }
 }
+

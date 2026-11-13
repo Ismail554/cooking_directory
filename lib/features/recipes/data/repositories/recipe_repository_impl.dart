@@ -50,8 +50,14 @@ class RecipeRepositoryImpl implements RecipeRepository {
     ]);
     final Map<String, Recipe> merged = {
       for (final m in results[0]) m.id: m.toEntity(),
-      for (final m in results[1]) m.id: m.toEntity(),
     };
+    for (final m in results[1]) {
+      final remote = m.toEntity();
+      final local = merged[remote.id];
+      merged[remote.id] = (remote.imageUrl.isEmpty && local != null && local.imageUrl.isNotEmpty)
+          ? remote.copyWith(imageUrl: local.imageUrl)
+          : remote;
+    }
     return merged.values.toList();
   }
 

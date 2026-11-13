@@ -1,57 +1,8 @@
 import '../../../../core/storage/local_json_store.dart';
 import '../models/expense_model.dart';
 
-/// Default seed expenses totaling $480.00 across culinary categories.
-final List<ExpenseModel> kSeedExpenses = [
-  ExpenseModel(
-    id: 'exp_001',
-    title: 'Supermarket Groceries',
-    category: 'Groceries',
-    dateLabel: 'Today, 2:30 PM',
-    amount: 145.80,
-    createdAt: DateTime(2026, 11, 12, 14, 30),
-  ),
-  ExpenseModel(
-    id: 'exp_002',
-    title: 'Trattoria Pasta Dinner',
-    category: 'Dining Out',
-    dateLabel: 'Yesterday, 8:15 PM',
-    amount: 68.00,
-    createdAt: DateTime(2026, 11, 11, 20, 15),
-  ),
-  ExpenseModel(
-    id: 'exp_003',
-    title: 'Chef Knife & Whetstone',
-    category: 'Kitchen Tools',
-    dateLabel: 'Nov 8, 2026',
-    amount: 125.00,
-    createdAt: DateTime(2026, 11, 8, 12, 0),
-  ),
-  ExpenseModel(
-    id: 'exp_004',
-    title: 'Saffron & Olive Oil',
-    category: 'Spices',
-    dateLabel: 'Nov 5, 2026',
-    amount: 34.20,
-    createdAt: DateTime(2026, 11, 5, 16, 0),
-  ),
-  ExpenseModel(
-    id: 'exp_005',
-    title: 'Artisan Bakery Box',
-    category: 'Delivery',
-    dateLabel: 'Nov 3, 2026',
-    amount: 22.80,
-    createdAt: DateTime(2026, 11, 3, 10, 0),
-  ),
-  ExpenseModel(
-    id: 'exp_006',
-    title: 'Organic Farm Veggies',
-    category: 'Groceries',
-    dateLabel: 'Oct 30, 2026',
-    amount: 84.20,
-    createdAt: DateTime(2026, 10, 30, 9, 0),
-  ),
-];
+/// Empty initial expense list so new users start with a clean budget slate.
+final List<ExpenseModel> kSeedExpenses = [];
 
 abstract class ExpenseLocalDataSource {
   Future<List<ExpenseModel>> getExpenses();

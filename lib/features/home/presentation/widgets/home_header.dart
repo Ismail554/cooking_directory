@@ -40,7 +40,7 @@ class HomeHeader extends StatelessWidget {
               AssetManager.appLogo,
               width: 36.r,
               height: 36.r,
-              fit: BoxFit.contain,
+              fit: BoxFit.cover,
               errorBuilder: (_, _, _) => const Icon(
                 Icons.restaurant_menu,
                 color: AppColors.primary,

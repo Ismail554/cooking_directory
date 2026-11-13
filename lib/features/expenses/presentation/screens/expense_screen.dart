@@ -140,7 +140,7 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
                           } else {
                             setState(() => _fallbackExpenses.removeWhere((e) => e.id == item.id));
                           }
-                          if (mounted) CustomSnackbar.showSuccess(context, 'Deleted "${item.title}"');
+                          if (context.mounted) CustomSnackbar.showSuccess(context, 'Deleted "${item.title}"');
                         },
                         child: ExpenseLogTile(item: item, currencySymbol: sym),
                       ),

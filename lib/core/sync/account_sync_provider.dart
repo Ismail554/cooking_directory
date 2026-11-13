@@ -161,9 +161,7 @@ class AccountSyncProvider extends ChangeNotifier {
       _lastSyncSucceeded = true;
       final rCount = _recipeProvider?.allRecipes.length ?? 0;
       final eCount = _expenseProvider?.allExpenses.length ?? 0;
-      _statusMessage = _realtimeSyncEnabled
-          ? 'Live RTDB • $rCount recipes, $eCount expenses'
-          : 'Synced (Manual Mode) • $rCount recipes, $eCount expenses';
+      _statusMessage = _realtimeSyncEnabled ? 'Live RTDB • $rCount recipes, $eCount expenses' : 'Synced (Manual Mode) • $rCount recipes, $eCount expenses';
     } catch (e) {
       _lastSyncSucceeded = false;
       _syncError = e.toString();

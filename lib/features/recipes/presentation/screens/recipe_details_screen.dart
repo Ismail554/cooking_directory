@@ -40,23 +40,9 @@ class _RecipeDetailsScreenState extends State<RecipeDetailsScreen> {
     title: 'Creamy Tuscan Garlic Chicken',
     description: 'Tender chicken breasts in a rich garlic, sun-dried tomato, and spinach cream sauce.',
     category: 'Dinner',
-    prepTimeMinutes: 15,
-    cookTimeMinutes: 20,
-    servings: 4,
-    calories: 450,
-    difficulty: 'Medium',
-    ingredients: const [
-      '2 chicken breasts', '3 cloves garlic minced', '1 cup heavy cream',
-      '1/2 cup chicken broth', '1/2 cup sun-dried tomatoes', '2 cups baby spinach',
-      '1/4 cup parmesan cheese', '1 tbsp olive oil',
-    ],
-    steps: const [
-      'Season chicken with salt, pepper, and Italian herbs.',
-      'Heat olive oil in skillet and sear chicken 6 minutes per side.',
-      'Sauté garlic, sun-dried tomatoes, and chicken broth.',
-      'Pour heavy cream, simmer with spinach and parmesan cheese.',
-      'Return chicken to skillet and simmer 3 minutes before serving.',
-    ],
+    prepTimeMinutes: 15, cookTimeMinutes: 20, servings: 4, calories: 450, difficulty: 'Medium',
+    ingredients: const ['2 chicken breasts', '3 cloves garlic minced', '1 cup heavy cream', '1/2 cup chicken broth', '1/2 cup sun-dried tomatoes', '2 cups baby spinach', '1/4 cup parmesan cheese', '1 tbsp olive oil'],
+    steps: const ['Season chicken with salt, pepper, and Italian herbs.', 'Heat olive oil in skillet and sear chicken 6 minutes per side.', 'Sauté garlic, sun-dried tomatoes, and chicken broth.', 'Pour heavy cream, simmer with spinach and parmesan cheese.', 'Return chicken to skillet and simmer 3 minutes before serving.'],
     isFavorite: true,
     createdAt: DateTime(2026, 1, 15),
   );
@@ -101,6 +87,25 @@ class _RecipeDetailsScreenState extends State<RecipeDetailsScreen> {
     context.read<RecipeProvider?>()?.toggleFavorite(_recipe.id);
   }
 
+  Future<void> _confirmDelete() async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Delete Recipe?'),
+        content: Text('Remove "${_recipe.title}" from your culinary vault?'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Delete', style: TextStyle(color: AppColors.error))),
+        ],
+      ),
+    );
+    if (confirm != true || !mounted) return;
+    await context.read<RecipeProvider?>()?.deleteRecipe(_recipe.id);
+    if (!mounted) return;
+    CustomSnackbar.showSuccess(context, 'Deleted "${_recipe.title}"');
+    context.pop();
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -116,6 +121,8 @@ class _RecipeDetailsScreenState extends State<RecipeDetailsScreen> {
             pinned: true,
             leading: _buildCircleAction(icon: Icons.arrow_back_rounded, onTap: () => context.pop()),
             actions: [
+              _buildCircleAction(icon: Icons.delete_outline_rounded, iconColor: Colors.white, onTap: _confirmDelete),
+              AppSpacing.gapW8,
               _buildCircleAction(
                 icon: _isFavorite ? Icons.bookmark_rounded : Icons.bookmark_border_rounded,
                 iconColor: _isFavorite ? AppColors.accent : Colors.white,
@@ -166,14 +173,9 @@ class _RecipeDetailsScreenState extends State<RecipeDetailsScreen> {
         child: Padding(
           padding: EdgeInsets.fromLTRB(AppSpacing.s16, AppSpacing.s8, AppSpacing.s16, AppSpacing.s12),
           child: AppButton(
-            text: 'Start Cooking Mode',
-            icon: Icons.play_arrow_rounded,
-            gradient: AppColors.primaryGradient,
+            text: 'Start Cooking Mode', icon: Icons.play_arrow_rounded, gradient: AppColors.primaryGradient,
             boxShadow: const [AppColors.glowingOrangeShadow],
-            onPressed: () {
-              final encTitle = Uri.encodeComponent(_recipe.title);
-              context.push('${AppRoutePaths.cookingMode}?id=${_recipe.id}&title=$encTitle');
-            },
+            onPressed: () => context.push('${AppRoutePaths.cookingMode}?id=${_recipe.id}&title=${Uri.encodeComponent(_recipe.title)}'),
           ),
         ),
       ),
@@ -184,8 +186,7 @@ class _RecipeDetailsScreenState extends State<RecipeDetailsScreen> {
   Widget _buildCircleAction({required IconData icon, Color iconColor = Colors.white, required VoidCallback onTap}) {
     return Center(
       child: InkWell(
-        onTap: onTap,
-        borderRadius: AppBorderRadius.circular,
+        onTap: onTap, borderRadius: AppBorderRadius.circular,
         child: Container(
           padding: EdgeInsets.all(7.r),
           decoration: BoxDecoration(color: Colors.black.withValues(alpha: 0.45), shape: BoxShape.circle),

@@ -112,9 +112,12 @@ class _AuthScreenState extends State<AuthScreen> {
                   AppSpacing.gapH16,
                   Center(
                     child: Container(
-                      width: 68.r, height: 68.r, padding: EdgeInsets.all(12.r),
-                      decoration: BoxDecoration(gradient: AppColors.primaryGradient, borderRadius: AppBorderRadius.r20, boxShadow: const [AppColors.culinaryCardShadow]),
-                      child: Image.asset(AssetManager.appLogo, errorBuilder: (_, _, _) => const Icon(Icons.restaurant_menu_rounded, color: Colors.white)),
+                      width: 68.r, height: 68.r,
+                      decoration: BoxDecoration(borderRadius: AppBorderRadius.r20, boxShadow: const [AppColors.culinaryCardShadow]),
+                      child: ClipRRect(
+                        borderRadius: AppBorderRadius.r20,
+                        child: Image.asset(AssetManager.appLogo, fit: BoxFit.cover, errorBuilder: (_, _, _) => const Icon(Icons.restaurant_menu_rounded, color: Colors.white)),
+                      ),
                     ),
                   ),
                   AppSpacing.gapH16,

@@ -171,7 +171,7 @@ void main() {
       expect(find.byType(HomeSearchBar), findsOneWidget);
       expect(find.byType(HomeCategoryPills), findsOneWidget);
       expect(find.byType(FeaturedRecipeCard), findsOneWidget);
-      expect(find.byType(RecipeGridCard), findsNWidgets(2));
+      expect(find.byType(RecipeGridCard), findsNothing);
       expect(find.text('New Recipe'), findsOneWidget);
       expect(find.byIcon(Icons.add_rounded), findsOneWidget);
       expect(find.byType(RefreshIndicator), findsOneWidget);

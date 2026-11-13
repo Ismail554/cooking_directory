@@ -26,15 +26,14 @@ void main() {
 
       expect(find.text('Food Expenses'), findsOneWidget);
       expect(find.text('Monthly Food Budget'), findsOneWidget);
-      expect(find.text('40% spent'), findsOneWidget);
-      expect(find.text('\$1,200'), findsOneWidget);
-      expect(find.text('\$480'), findsOneWidget);
-      expect(find.text('\$720'), findsOneWidget);
+      expect(find.text('0% spent'), findsOneWidget);
+      expect(find.text('\$1,200'), findsNWidgets(2));
+      expect(find.text('\$0'), findsOneWidget);
 
       final progressFinder = find.byType(LinearProgressIndicator);
       expect(progressFinder, findsOneWidget);
       final indicator = tester.widget<LinearProgressIndicator>(progressFinder);
-      expect(indicator.value, 0.40);
+      expect(indicator.value, 0.0);
     });
 
     testWidgets('renders all category filter pills and filters expenses on tap',
@@ -49,16 +48,14 @@ void main() {
       expect(find.text('Spices'), findsOneWidget);
       expect(find.text('Delivery'), findsOneWidget);
 
-      // In initial 'All' state, all expense tiles are visible
-      expect(find.text('Supermarket Groceries'), findsOneWidget);
-      expect(find.text('Trattoria Pasta Dinner'), findsOneWidget);
+      // In clean initial state, empty view is displayed
+      expect(find.text('No Expenses Found'), findsOneWidget);
 
       // Tap Dining Out filter
       await tester.tap(find.text('Dining Out'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Trattoria Pasta Dinner'), findsOneWidget);
-      expect(find.text('Supermarket Groceries'), findsNothing);
+      expect(find.text('No expenses logged for "Dining Out".'), findsOneWidget);
     });
 
     testWidgets('renders empty state when filter category has no items',
@@ -66,6 +63,7 @@ void main() {
       await tester.pumpWidget(_buildTestApp(const ExpenseScreen()));
       await tester.pumpAndSettle();
 
+      await tester.ensureVisible(find.text('Snacks'));
       await tester.tap(find.text('Snacks'));
       await tester.pumpAndSettle();
 
@@ -183,8 +181,8 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(provider.allExpenses.length, greaterThanOrEqualTo(5));
-      expect(find.text('Supermarket Groceries'), findsOneWidget);
+      expect(provider.allExpenses, isEmpty);
+      expect(find.text('No Expenses Found'), findsOneWidget);
 
       await provider.addExpense(
         Expense(
@@ -199,6 +197,11 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Organic Saffron'), findsOneWidget);
+
+      await provider.deleteExpense('exp_test_01');
+      await tester.pumpAndSettle();
+
+      expect(find.text('Organic Saffron'), findsNothing);
     });
   });
 }

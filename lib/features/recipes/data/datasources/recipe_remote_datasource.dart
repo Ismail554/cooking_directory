@@ -128,7 +128,13 @@ class RecipeRemoteDataSourceImpl implements RecipeRemoteDataSource {
 
   @override
   Future<void> saveRemoteRecipe(RecipeModel recipe) async {
-    final json = recipe.toJson();
+    final json = Map<String, dynamic>.from(recipe.toJson());
+    // Keep photos strictly on-device to minimize Firebase DB size;
+    // only preserve external http(s) URLs if present.
+    final img = (json['imageUrl'] as String?) ?? '';
+    if (!img.startsWith('http://') && !img.startsWith('https://')) {
+      json['imageUrl'] = '';
+    }
     await Future.wait([_saveRtdb(recipe.id, json), _saveFs(recipe.id, json)]);
   }
 

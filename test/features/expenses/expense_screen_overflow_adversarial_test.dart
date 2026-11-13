@@ -40,7 +40,7 @@ void main() {
 
       expect(tester.takeException(), isNull);
       expect(find.text('Monthly Food Budget'), findsOneWidget);
-      expect(find.text('40% spent'), findsOneWidget);
+      expect(find.text('0% spent'), findsOneWidget);
     });
 
     testWidgets('renders cleanly on narrow viewport (320x568 iPhone SE)', (tester) async {
@@ -59,7 +59,7 @@ void main() {
 
       expect(tester.takeException(), isNull);
       expect(find.text('Monthly Food Budget'), findsOneWidget);
-      expect(find.text('40% spent'), findsOneWidget);
+      expect(find.text('0% spent'), findsOneWidget);
       expect(find.text('Total Budget'), findsOneWidget);
       expect(find.text('Spent'), findsOneWidget);
       expect(find.text('Remaining'), findsOneWidget);
@@ -81,7 +81,7 @@ void main() {
 
       expect(tester.takeException(), isNull);
       expect(find.text('Monthly Food Budget'), findsOneWidget);
-      expect(find.text('40% spent'), findsOneWidget);
+      expect(find.text('0% spent'), findsOneWidget);
     });
 
     testWidgets('renders cleanly on 320x568 with 1.5x font scaling', (tester) async {
@@ -101,7 +101,7 @@ void main() {
 
       expect(tester.takeException(), isNull);
       expect(find.text('Monthly Food Budget'), findsOneWidget);
-      expect(find.text('40% spent'), findsOneWidget);
+      expect(find.text('0% spent'), findsOneWidget);
     });
 
     testWidgets('renders cleanly on 320x568 with 2.0x accessibility font scaling', (tester) async {
@@ -142,7 +142,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(tester.takeException(), isNull);
-      expect(find.text('Trattoria Pasta Dinner'), findsOneWidget);
+      expect(find.text('No Expenses Found'), findsOneWidget);
 
       // Scroll and tap Snacks (empty state)
       await tester.drag(find.text('Dining Out'), const Offset(-200, 0));

@@ -37,7 +37,7 @@ class AppBrandingCard extends StatelessWidget {
               AssetManager.appLogo,
               width: 48.r,
               height: 48.r,
-              fit: BoxFit.contain,
+              fit: BoxFit.cover,
             ),
           ),
           AppSpacing.gapW16,

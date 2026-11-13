@@ -59,3 +59,4 @@ class LocalJsonStore {
     } catch (_) {}
   }
 }
+
