@@ -8,6 +8,7 @@ import 'package:cooking_directory/core/managers/font_manager.dart';
 import 'package:cooking_directory/core/managers/style_manager.dart';
 import 'package:cooking_directory/core/managers/value_manager.dart';
 import 'package:cooking_directory/core/routing/route_paths.dart';
+import 'package:cooking_directory/core/widgets/recipe_image_view.dart';
 
 /// Compact culinary card for recipe grids and discovery lists.
 class RecipeGridCard extends StatelessWidget {
@@ -54,18 +55,12 @@ class RecipeGridCard extends StatelessWidget {
                 borderRadius: BorderRadius.vertical(top: Radius.circular(16.r)),
                 child: Stack(
                   children: [
-                    Image.asset(
-                      imageAsset,
+                    RecipeImageView(
+                      imageSource: imageAsset,
+                      fallbackAsset: AssetManager.recipePlaceholder,
                       height: 105.h,
                       width: double.infinity,
                       fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) => Container(
-                        height: 105.h,
-                        color: AppColors.primaryContainer,
-                        child: const Center(
-                          child: Icon(Icons.restaurant_rounded, color: AppColors.primary),
-                        ),
-                      ),
                     ),
                     Positioned(
                       top: 8.h,

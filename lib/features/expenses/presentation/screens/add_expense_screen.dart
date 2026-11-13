@@ -4,6 +4,7 @@ import 'package:cooking_directory/core/managers/font_manager.dart';
 import 'package:cooking_directory/core/managers/style_manager.dart';
 import 'package:cooking_directory/core/managers/value_manager.dart';
 import 'package:cooking_directory/core/widgets/app_button.dart';
+import 'package:cooking_directory/core/widgets/app_themed_background.dart';
 
 /// Form screen for recording food expenses with keyboard-safe scrolling.
 class AddExpenseScreen extends StatefulWidget {
@@ -34,8 +35,10 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
+    return AppThemedBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        appBar: AppBar(
         title: Text('Add Expense', style: getBoldStyle(context: context, fontSize: FontSize.s18)),
       ),
       body: SafeArea(
@@ -77,12 +80,13 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                 AppSpacing.gapH16,
                 DropdownButtonFormField<String>(
                   initialValue: _selectedCategory,
+                  isExpanded: true,
                   decoration: InputDecoration(
                     labelText: 'Category',
                     prefixIcon: const Icon(Icons.category_outlined),
                     border: OutlineInputBorder(borderRadius: AppBorderRadius.r12),
                   ),
-                  items: _categories.map((cat) => DropdownMenuItem(value: cat, child: Text(cat))).toList(),
+                  items: _categories.map((cat) => DropdownMenuItem(value: cat, child: Text(cat, overflow: TextOverflow.ellipsis))).toList(),
                   onChanged: (val) {
                     if (val != null) setState(() => _selectedCategory = val);
                   },
@@ -112,6 +116,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
             ),
           ),
         ),
+      ),
       ),
     );
   }

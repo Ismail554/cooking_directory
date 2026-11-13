@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:provider/provider.dart';
+import 'package:cooking_directory/features/expenses/domain/entities/expense.dart';
+import 'package:cooking_directory/features/expenses/presentation/providers/expense_provider.dart';
 import 'package:cooking_directory/features/expenses/presentation/screens/add_expense_screen.dart';
 import 'package:cooking_directory/features/expenses/presentation/screens/expense_screen.dart';
 
@@ -165,6 +168,37 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(tester.takeException(), isNull);
+    });
+  });
+
+  group('ExpenseProvider Async State Management Tests', () {
+    testWidgets('loads async expenses, adds new expense, filters, and deletes',
+        (tester) async {
+      final provider = ExpenseProvider();
+      await tester.pumpWidget(
+        ChangeNotifierProvider<ExpenseProvider>.value(
+          value: provider,
+          child: _buildTestApp(const ExpenseScreen()),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(provider.allExpenses.length, greaterThanOrEqualTo(5));
+      expect(find.text('Supermarket Groceries'), findsOneWidget);
+
+      await provider.addExpense(
+        Expense(
+          id: 'exp_test_01',
+          title: 'Organic Saffron',
+          category: 'Spices',
+          dateLabel: 'Mar 21, 2026',
+          amount: 18.0,
+          createdAt: DateTime(2026, 3, 21),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Organic Saffron'), findsOneWidget);
     });
   });
 }

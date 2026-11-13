@@ -7,17 +7,20 @@ import '../../../../core/managers/font_manager.dart';
 import '../../../../core/managers/style_manager.dart';
 import '../../../../core/routing/route_paths.dart';
 import '../../../../core/theme/theme_provider.dart';
+import '../../../../core/widgets/app_themed_background.dart';
 import '../../../../core/widgets/custom_snackbar.dart';
 import '../../../authentication/presentation/providers/auth_provider.dart';
 import '../../../authentication/presentation/widgets/auth_dialog.dart';
+import '../../../expenses/presentation/providers/expense_provider.dart';
 import '../../../recipes/presentation/providers/recipe_provider.dart';
+import '../widgets/account_sync_card.dart';
 import '../widgets/app_branding_card.dart';
 import '../widgets/export_recipes_tile.dart';
 import '../widgets/import_recipes_tile.dart';
 import '../widgets/preference_dialogs.dart';
 import '../widgets/profile_header.dart';
 
-/// Chef profile screen with preferences, theming, currency, data import/export, and auth.
+/// Chef profile screen with preferences, theming, currency, Realtime DB sync controls, and auth.
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
 
@@ -57,82 +60,89 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ? (user?.email ?? 'Authenticated Session')
         : 'Not signed in • Tap to Sign In';
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Chef Profile', style: getBoldStyle(context: context, fontSize: FontSize.s18)),
-        actions: [
-          if (!isAuth)
-            TextButton.icon(
-              onPressed: () => AuthDialog.show(context),
-              icon: Icon(Icons.login_rounded, size: 18, color: primaryTone),
-              label: Text('Sign In', style: getSemiBoldStyle(fontSize: FontSize.s13, color: primaryTone)),
-            ),
-        ],
-      ),
-      body: SafeArea(
-        child: ListView(
-          cacheExtent: 2000,
-          padding: AppSpacing.screenPadding,
-          children: [
-            ProfileHeader(
-              name: resolvedName,
-              email: resolvedEmail,
-              role: isAuth ? 'Executive Chef' : 'Guest Vault',
-              badgeText: isAuth ? 'PRO' : 'GUEST',
-              photoUrl: user?.photoUrl,
-              onTap: isAuth ? null : () => AuthDialog.show(context),
-            ),
-            AppSpacing.gapH12,
-            _buildSectionHeader('Preferences', primaryTone),
-            SwitchListTile(
-              dense: true,
-              contentPadding: EdgeInsets.zero,
-              secondary: Icon(isDark ? Icons.dark_mode_rounded : Icons.dark_mode_outlined, color: primaryTone),
-              title: Text('Dark Mode', style: getMediumStyle(context: context, fontSize: FontSize.s14)),
-              subtitle: Text(
-                isDark ? 'Dark theme active' : 'Light theme active',
-                style: getRegularStyle(context: context, fontSize: FontSize.s12, color: secColor),
+    return AppThemedBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        appBar: AppBar(
+          title: Text('Chef Profile', style: getBoldStyle(context: context, fontSize: FontSize.s18)),
+          actions: [
+            if (!isAuth)
+              TextButton.icon(
+                onPressed: () => AuthDialog.show(context),
+                icon: Icon(Icons.login_rounded, size: 18, color: primaryTone),
+                label: Text('Sign In', style: getSemiBoldStyle(fontSize: FontSize.s13, color: primaryTone)),
               ),
-              value: isDark,
-              activeThumbColor: AppColors.primary,
-              onChanged: (val) => themeProvider != null
-                  ? themeProvider.toggleDarkMode(val)
-                  : setState(() => _fallbackDarkOverride = val),
-            ),
-            _buildActionTile(
-              icon: Icons.restaurant_outlined,
-              iconColor: isDark ? AppColors.secondaryLight : AppColors.secondary,
-              title: 'Dietary Preferences',
-              subtitle: dietary.isEmpty ? 'None selected' : dietary.join(', '),
-              secColor: secColor,
-              onTap: () => _openDietaryDialog(dietary, themeProvider),
-            ),
-            _buildActionTile(
-              icon: Icons.attach_money_rounded,
-              iconColor: AppColors.accent,
-              title: 'Currency & Budget',
-              subtitle: '$currency • $sym${budget.toStringAsFixed(0)} limit',
-              secColor: secColor,
-              onTap: () => _openCurrencyBudgetDialog(currency, budget, themeProvider),
-            ),
-            AppSpacing.gapH8,
-            _buildSectionHeader('Data & Backup', primaryTone),
-            const ExportRecipesTile(),
-            const ImportRecipesTile(),
-            AppSpacing.gapH8,
-            _buildSectionHeader('Account', primaryTone),
-            _buildActionTile(
-              icon: Icons.logout_rounded,
-              iconColor: AppColors.error,
-              title: 'Sign Out',
-              subtitle: isAuth ? 'Signed in as ${user?.email ?? resolvedName}' : 'End current session and lock recipe vault',
-              textColor: AppColors.error,
-              secColor: secColor,
-              onTap: () => _confirmSignOut(auth),
-            ),
-            AppSpacing.gapH16,
-            const AppBrandingCard(),
           ],
+        ),
+        body: SafeArea(
+          child: SingleChildScrollView(
+            padding: AppSpacing.screenPadding,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                ProfileHeader(
+                  name: resolvedName,
+                  email: resolvedEmail,
+                  role: isAuth ? 'Executive Chef' : 'Guest Vault',
+                  badgeText: isAuth ? 'PRO' : 'GUEST',
+                  photoUrl: user?.photoUrl,
+                  onTap: isAuth ? null : () => AuthDialog.show(context),
+                ),
+                AppSpacing.gapH12,
+                const AccountSyncCard(),
+                AppSpacing.gapH12,
+                _buildSectionHeader('Preferences', primaryTone),
+                SwitchListTile(
+                  dense: true,
+                  contentPadding: EdgeInsets.zero,
+                  secondary: Icon(isDark ? Icons.dark_mode_rounded : Icons.dark_mode_outlined, color: primaryTone),
+                  title: Text('Dark Mode', style: getMediumStyle(context: context, fontSize: FontSize.s14)),
+                  subtitle: Text(
+                    isDark ? 'Dark theme active' : 'Light theme active',
+                    style: getRegularStyle(context: context, fontSize: FontSize.s12, color: secColor),
+                  ),
+                  value: isDark,
+                  activeThumbColor: AppColors.primary,
+                  onChanged: (val) => themeProvider != null
+                      ? themeProvider.toggleDarkMode(val)
+                      : setState(() => _fallbackDarkOverride = val),
+                ),
+                _buildActionTile(
+                  icon: Icons.restaurant_outlined,
+                  iconColor: isDark ? AppColors.secondaryLight : AppColors.secondary,
+                  title: 'Dietary Preferences',
+                  subtitle: dietary.isEmpty ? 'None selected' : dietary.join(', '),
+                  secColor: secColor,
+                  onTap: () => _openDietaryDialog(dietary, themeProvider),
+                ),
+                _buildActionTile(
+                  icon: Icons.attach_money_rounded,
+                  iconColor: AppColors.accent,
+                  title: 'Currency & Budget',
+                  subtitle: '$currency • $sym${budget.toStringAsFixed(0)} limit',
+                  secColor: secColor,
+                  onTap: () => _openCurrencyBudgetDialog(currency, budget, themeProvider),
+                ),
+                AppSpacing.gapH8,
+                _buildSectionHeader('Data & Backup', primaryTone),
+                const ExportRecipesTile(),
+                const ImportRecipesTile(),
+                AppSpacing.gapH8,
+                _buildSectionHeader('Account', primaryTone),
+                _buildActionTile(
+                  icon: Icons.logout_rounded,
+                  iconColor: AppColors.error,
+                  title: 'Sign Out',
+                  subtitle: isAuth ? 'Signed in as ${user?.email ?? resolvedName}' : 'End current session and lock recipe vault',
+                  textColor: AppColors.error,
+                  secColor: secColor,
+                  onTap: () => _confirmSignOut(auth),
+                ),
+                AppSpacing.gapH16,
+                const AppBrandingCard(),
+              ],
+            ),
+          ),
         ),
       ),
     );
@@ -179,10 +189,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
       await auth?.signOut();
       if (!mounted) return;
       context.read<RecipeProvider?>()?.loadRecipes();
+      context.read<ExpenseProvider?>()?.loadExpenses();
+      context.read<ThemeProvider?>()?.loadPreferences();
       CustomSnackbar.showSuccess(context, 'Signed out successfully');
-      if (GoRouter.maybeOf(context) != null) {
-        context.go(AppRoutePaths.auth);
-      }
+      if (GoRouter.maybeOf(context) != null) context.go(AppRoutePaths.auth);
     });
   }
 }

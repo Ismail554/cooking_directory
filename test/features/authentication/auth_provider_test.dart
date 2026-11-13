@@ -78,6 +78,15 @@ class _MockAuthRepository implements AuthRepository {
   }
 
   @override
+  Future<void> sendEmailVerification() async {}
+
+  @override
+  Future<AuthUser?> reloadUser() async => mockUser;
+
+  @override
+  Future<void> sendPasswordResetEmail(String email) async {}
+
+  @override
   Future<void> signOut() async {
     mockUser = null;
     _controller.add(null);

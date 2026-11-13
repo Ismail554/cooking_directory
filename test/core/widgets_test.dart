@@ -161,5 +161,28 @@ void main() {
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
       expect(find.text('Simmering ingredients...'), findsOneWidget);
     });
+
+    testWidgets('does not overflow inside constrained SizedBox(height: 140) or tight height', (tester) async {
+      await tester.pumpWidget(
+        _buildTestApp(
+          const Column(
+            children: [
+              SizedBox(
+                height: 140,
+                child: AppLoadingView(message: 'Simmering fresh recipes...'),
+              ),
+              SizedBox(
+                height: 60,
+                child: AppLoadingView(message: 'Loading...', useLottie: false),
+              ),
+            ],
+          ),
+        ),
+      );
+      await tester.pump();
+
+      expect(tester.takeException(), isNull);
+      expect(find.text('Simmering fresh recipes...'), findsOneWidget);
+    });
   });
 }

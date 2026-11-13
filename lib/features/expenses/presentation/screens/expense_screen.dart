@@ -11,11 +11,15 @@ import 'package:cooking_directory/core/managers/value_manager.dart';
 import 'package:cooking_directory/core/routing/route_paths.dart';
 import 'package:cooking_directory/core/theme/theme_provider.dart';
 import 'package:cooking_directory/core/widgets/app_empty_view.dart';
+import 'package:cooking_directory/core/widgets/app_loading_view.dart';
+import 'package:cooking_directory/core/widgets/app_themed_background.dart';
 import 'package:cooking_directory/core/widgets/custom_snackbar.dart';
+import 'package:cooking_directory/features/expenses/data/datasources/expense_local_datasource.dart';
+import 'package:cooking_directory/features/expenses/domain/entities/expense.dart';
+import 'package:cooking_directory/features/expenses/presentation/providers/expense_provider.dart';
+import 'package:cooking_directory/features/expenses/presentation/widgets/expense_budget_and_tile.dart';
 
-typedef _ExpenseData = ({String title, String category, String date, double amount, IconData icon, Color color});
-
-/// Food expenses tracking screen with dynamic budget progress, filters, and logs.
+/// Food expenses tracking screen with async state management, budget progress, and filters.
 class ExpenseScreen extends StatefulWidget {
   const ExpenseScreen({super.key});
 
@@ -25,171 +29,162 @@ class ExpenseScreen extends StatefulWidget {
 
 class _ExpenseScreenState extends State<ExpenseScreen> {
   static const _categories = ['All', 'Groceries', 'Dining Out', 'Kitchen Tools', 'Spices', 'Delivery', 'Snacks'];
-
-  static const List<_ExpenseData> _seedExpenses = [
-    (title: 'Supermarket Groceries', category: 'Groceries', date: 'Today, 2:30 PM', amount: 145.80, icon: Icons.local_grocery_store_outlined, color: AppColors.expenseGroceries),
-    (title: 'Trattoria Pasta Dinner', category: 'Dining Out', date: 'Yesterday, 8:15 PM', amount: 68.00, icon: Icons.restaurant_outlined, color: AppColors.expenseDiningOut),
-    (title: 'Chef Knife & Whetstone', category: 'Kitchen Tools', date: 'Nov 8, 2026', amount: 125.00, icon: Icons.hardware_outlined, color: AppColors.expenseEquipment),
-    (title: 'Saffron & Olive Oil', category: 'Spices', date: 'Nov 5, 2026', amount: 34.20, icon: Icons.spa_outlined, color: AppColors.expenseSpices),
-    (title: 'Artisan Bakery Box', category: 'Delivery', date: 'Nov 3, 2026', amount: 22.80, icon: Icons.delivery_dining_outlined, color: AppColors.accent),
-    (title: 'Organic Farm Veggies', category: 'Groceries', date: 'Oct 30, 2026', amount: 84.20, icon: Icons.local_grocery_store_outlined, color: AppColors.expenseGroceries),
-  ];
-
-  late final List<_ExpenseData> _expenses = List.from(_seedExpenses);
-  String _selectedCategory = 'All';
+  late final List<Expense> _fallbackExpenses = kSeedExpenses.map((e) => e.toEntity()).toList();
+  String _fallbackCategory = 'All';
 
   Future<void> _openAddExpense() async {
     final result = await context.push<Map<String, dynamic>>(AppRoutePaths.addExpense);
-    if (result != null && mounted) {
-      final title = (result['title'] as String?) ?? 'Expense';
-      final amount = (result['amount'] as num?)?.toDouble() ?? 0.0;
-      final category = (result['category'] as String?) ?? 'Groceries';
-      setState(() {
-        _expenses.insert(0, (title: title, category: category, date: 'Just now', amount: amount, icon: Icons.receipt_long_outlined, color: AppColors.primary));
-      });
-      CustomSnackbar.showSuccess(context, 'Added "$title" to expenses');
+    if (result == null || !mounted) return;
+    final title = (result['title'] as String?) ?? 'Expense';
+    final newExpense = Expense(
+      id: 'exp_${DateTime.now().millisecondsSinceEpoch}',
+      title: title,
+      category: (result['category'] as String?) ?? 'Groceries',
+      dateLabel: 'Just now',
+      amount: (result['amount'] as num?)?.toDouble() ?? 0.0,
+      createdAt: DateTime.now(),
+    );
+    final provider = context.read<ExpenseProvider?>();
+    if (provider != null) {
+      await provider.addExpense(newExpense);
+    } else {
+      setState(() => _fallbackExpenses.insert(0, newExpense));
     }
-  }
-
-  String _fmtWhole(double v, String sym) {
-    final str = v.round().toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},');
-    return '$sym$str';
+    if (mounted) CustomSnackbar.showSuccess(context, 'Added "$title" to expenses');
   }
 
   @override
   Widget build(BuildContext context) {
     final tp = context.watch<ThemeProvider?>();
+    final ep = context.watch<ExpenseProvider?>();
     final budget = tp?.monthlyBudget ?? 1200.0;
     final sym = tp?.currencySymbol ?? '\$';
-    final spent = _expenses.fold<double>(0.0, (sum, e) => sum + e.amount);
+    final selectedCat = ep?.selectedCategory ?? _fallbackCategory;
+    final allItems = ep?.allExpenses ?? _fallbackExpenses;
+    final spent = ep?.totalSpent ?? allItems.fold<double>(0.0, (s, e) => s + e.amount);
     final remaining = (budget - spent).clamp(0.0, double.infinity);
     final ratio = budget > 0 ? (spent / budget).clamp(0.0, 1.0) : 0.0;
+    final list = ep != null
+        ? ep.filteredExpenses
+        : (selectedCat == 'All' ? allItems : allItems.where((e) => e.category == selectedCat).toList());
+    final isLoading = ep?.isLoading ?? false;
 
-    final list = _selectedCategory == 'All' ? _expenses : _expenses.where((e) => e.category == _selectedCategory).toList();
-
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Food Expenses', style: getBoldStyle(context: context, fontSize: FontSize.s18)),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.calendar_month_outlined),
-            onPressed: () => showDatePicker(context: context, initialDate: DateTime.now(), firstDate: DateTime(2020), lastDate: DateTime(2030)),
-          ),
-        ],
-      ),
-      body: SafeArea(
-        child: ListView(
-          padding: AppSpacing.screenPadding,
-          children: [
-            _buildBudgetCard(budget, spent, remaining, ratio, sym),
-            AppSpacing.gapH20,
-            _buildCategoryFilters(),
-            AppSpacing.gapH20,
-            Text('Recent Expenses', style: getBoldStyle(context: context, fontSize: FontSize.s16)),
-            AppSpacing.gapH12,
-            if (list.isEmpty)
-              AppEmptyView(
-                illustrationPath: AssetManager.svgNoData,
-                title: 'No Expenses Found',
-                message: 'No expenses logged for "$_selectedCategory".',
-                actionLabel: 'Add Expense',
-                onAction: _openAddExpense,
-              )
-            else
-              ...list.map((item) => Padding(padding: const EdgeInsets.only(bottom: 8), child: _buildExpenseTile(item, sym))),
+    return AppThemedBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        appBar: AppBar(
+          title: Text('Food Expenses', style: getBoldStyle(context: context, fontSize: FontSize.s18)),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.calendar_month_outlined),
+              onPressed: () async {
+                final picked = await showDatePicker(context: context, initialDate: DateTime.now(), firstDate: DateTime(2020), lastDate: DateTime(2030));
+                if (picked != null && mounted) ep?.setSelectedDate(picked);
+              },
+            ),
           ],
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        heroTag: 'add_expense_fab',
-        onPressed: _openAddExpense,
-        backgroundColor: AppColors.primary,
-        child: const Icon(Icons.add_rounded, color: Colors.white),
-      ),
-    );
-  }
-
-  Widget _buildBudgetCard(double budget, double spent, double remaining, double ratio, String sym) {
-    final pct = (ratio * 100).round();
-    return Container(
-      padding: AppSpacing.cardPadding,
-      decoration: BoxDecoration(gradient: AppColors.primaryGradient, borderRadius: AppBorderRadius.r16, boxShadow: const [AppColors.culinaryCardShadow]),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(child: Text('Monthly Food Budget', maxLines: 1, overflow: TextOverflow.ellipsis, style: getMediumStyle(fontSize: FontSize.s13, color: Colors.white70))),
-              AppSpacing.gapW8,
-              Container(
-                padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 2.h),
-                decoration: BoxDecoration(color: Colors.white24, borderRadius: AppBorderRadius.r8),
-                child: Text('$pct% spent', style: getBoldStyle(fontSize: FontSize.s11, color: Colors.white)),
-              ),
-            ],
+        body: SafeArea(
+          child: RefreshIndicator(
+            onRefresh: () async => ep?.loadExpenses(showLoading: true),
+            color: AppColors.primary,
+            child: ListView(
+              padding: AppSpacing.screenPadding,
+              children: [
+                ExpenseBudgetCard(budget: budget, spent: spent, remaining: remaining, ratio: ratio, currencySymbol: sym),
+                AppSpacing.gapH20,
+                _buildCategoryFilters(selectedCat, ep),
+                if (ep?.selectedDate != null) ...[
+                  AppSpacing.gapH8,
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: ActionChip(
+                      avatar: const Icon(Icons.close_rounded, size: 16),
+                      label: Text(
+                        'Date: ${ep!.selectedDate!.year}-${ep.selectedDate!.month.toString().padLeft(2, '0')}-${ep.selectedDate!.day.toString().padLeft(2, '0')}',
+                        style: getMediumStyle(context: context, fontSize: FontSize.s12),
+                      ),
+                      onPressed: () => ep.setSelectedDate(null),
+                    ),
+                  ),
+                ],
+                AppSpacing.gapH16,
+                Text('Recent Expenses', style: getBoldStyle(context: context, fontSize: FontSize.s16)),
+                AppSpacing.gapH12,
+                if (isLoading && list.isEmpty)
+                  const SizedBox(height: 150, child: AppLoadingView(message: 'Syncing expenses...'))
+                else if (list.isEmpty)
+                  AppEmptyView(
+                    illustrationPath: AssetManager.svgNoData,
+                    title: 'No Expenses Found',
+                    message: 'No expenses logged for "$selectedCat".',
+                    actionLabel: 'Add Expense',
+                    onAction: _openAddExpense,
+                  )
+                else
+                  ...list.map(
+                    (item) => Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: Dismissible(
+                        key: ValueKey(item.id),
+                        direction: DismissDirection.endToStart,
+                        background: Container(
+                          alignment: Alignment.centerRight,
+                          padding: const EdgeInsets.only(right: 16),
+                          decoration: BoxDecoration(color: AppColors.error.withValues(alpha: 0.16), borderRadius: AppBorderRadius.r16),
+                          child: const Icon(Icons.delete_outline_rounded, color: AppColors.error),
+                        ),
+                        onDismissed: (_) async {
+                          if (ep != null) {
+                            await ep.deleteExpense(item.id);
+                          } else {
+                            setState(() => _fallbackExpenses.removeWhere((e) => e.id == item.id));
+                          }
+                          if (mounted) CustomSnackbar.showSuccess(context, 'Deleted "${item.title}"');
+                        },
+                        child: ExpenseLogTile(item: item, currencySymbol: sym),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
           ),
-          AppSpacing.gapH12,
-          ClipRRect(
-            borderRadius: AppBorderRadius.circular,
-            child: LinearProgressIndicator(value: ratio, backgroundColor: Colors.white24, valueColor: const AlwaysStoppedAnimation<Color>(Colors.white), minHeight: 8),
-          ),
-          AppSpacing.gapH16,
-          Row(children: [
-            _metric('Total Budget', _fmtWhole(budget, sym)),
-            _metric('Spent', _fmtWhole(spent, sym)),
-            _metric('Remaining', _fmtWhole(remaining, sym)),
-          ]),
-        ],
+        ),
+        floatingActionButton: FloatingActionButton(
+          heroTag: 'add_expense_fab',
+          onPressed: _openAddExpense,
+          backgroundColor: AppColors.primary,
+          child: const Icon(Icons.add_rounded, color: Colors.white),
+        ),
       ),
     );
   }
 
-  Widget _metric(String label, String value) {
-    return Expanded(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: getRegularStyle(fontSize: FontSize.s11, color: Colors.white70)),
-          AppSpacing.gapH2,
-          Text(value, maxLines: 1, overflow: TextOverflow.ellipsis, style: getBoldStyle(fontSize: FontSize.s16, color: Colors.white)),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildCategoryFilters() {
+  Widget _buildCategoryFilters(String selectedCat, ExpenseProvider? ep) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
+      clipBehavior: Clip.none,
       child: Row(
         children: _categories.map((cat) {
-          final isSelected = _selectedCategory == cat;
+          final sel = cat == selectedCat;
           return Padding(
-            padding: EdgeInsets.only(right: 8.w),
-            child: FilterChip(
-              label: Text(cat),
-              selected: isSelected,
-              selectedColor: AppColors.primary,
-              labelStyle: getMediumStyle(fontSize: FontSize.s12, color: isSelected ? Colors.white : null),
-              onSelected: (_) => setState(() => _selectedCategory = cat),
+            padding: const EdgeInsets.only(right: 6),
+            child: InkWell(
+              onTap: () => ep != null ? ep.setCategory(cat) : setState(() => _fallbackCategory = cat),
+              borderRadius: AppBorderRadius.r20,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: sel ? AppColors.primary : Theme.of(context).cardColor,
+                  borderRadius: AppBorderRadius.r20,
+                  border: Border.all(color: sel ? AppColors.primary : (isDark ? AppColors.borderDark : AppColors.borderLight)),
+                ),
+                child: Text(cat, style: getMediumStyle(context: context, fontSize: 12.sp, color: sel ? Colors.white : null)),
+              ),
             ),
           );
         }).toList(),
-      ),
-    );
-  }
-
-  Widget _buildExpenseTile(_ExpenseData item, String sym) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Card(
-      elevation: AppElevation.e0,
-      color: isDark ? AppColors.surfaceVariantDark : AppColors.surfaceVariantLight,
-      shape: RoundedRectangleBorder(borderRadius: AppBorderRadius.r12),
-      child: ListTile(
-        leading: CircleAvatar(backgroundColor: item.color.withValues(alpha: 0.15), child: Icon(item.icon, color: item.color)),
-        title: Text(item.title, style: getSemiBoldStyle(context: context, fontSize: FontSize.s14)),
-        subtitle: Text('${item.category} • ${item.date}', style: getRegularStyle(context: context, fontSize: FontSize.s12, color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight)),
-        trailing: Text('-$sym${item.amount.toStringAsFixed(2)}', style: getBoldStyle(context: context, fontSize: FontSize.s14, color: isDark ? AppColors.primaryLight : AppColors.primary)),
       ),
     );
   }

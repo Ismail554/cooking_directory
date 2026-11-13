@@ -4,12 +4,15 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../../../core/constants/app_spacing.dart';
 import '../../../../core/managers/app_colors.dart';
+import '../../../../core/managers/asset_manager.dart';
 import '../../../../core/managers/font_manager.dart';
 import '../../../../core/managers/style_manager.dart';
 import '../../../../core/managers/value_manager.dart';
 import '../../../../core/routing/route_paths.dart';
 import '../../../../core/widgets/app_empty_view.dart';
 import '../../../../core/widgets/app_loading_view.dart';
+import '../../../../core/widgets/app_themed_background.dart';
+import '../../../../core/widgets/recipe_image_view.dart';
 import '../../../authentication/presentation/providers/auth_provider.dart';
 import '../../../recipes/data/datasources/recipe_seed_data.dart';
 import '../../../recipes/domain/entities/recipe.dart';
@@ -44,34 +47,28 @@ class HomeScreen extends StatelessWidget {
     final popularRecipes = otherRecipes.take(2).toList();
     final moreRecipes = otherRecipes.length > 2 ? otherRecipes.sublist(2) : <Recipe>[];
 
-    return Scaffold(
-      body: SafeArea(
+    return AppThemedBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        body: SafeArea(
         child: RefreshIndicator(
           onRefresh: () async => recipeProvider?.loadRecipes(),
           color: AppColors.primary,
           child: ListView(
             padding: AppSpacing.screenPadding,
             children: [
-              HomeHeader(
-                greeting: greeting,
-                onAvatarTap: () => context.go(AppRoutePaths.profile),
-              ),
+              HomeHeader(greeting: greeting, onAvatarTap: () => context.go(AppRoutePaths.profile)),
               AppSpacing.gapH16,
               HomeSearchBar(
+                hasActiveFilter: selectedCategory != 'All',
                 onChanged: (val) => recipeProvider?.setSearchQuery(val),
                 onFilterTap: () => recipeProvider?.setCategory('All'),
               ),
               AppSpacing.gapH16,
-              HomeCategoryPills(
-                selectedCategory: selectedCategory,
-                onCategorySelected: (cat) => recipeProvider?.setCategory(cat),
-              ),
+              HomeCategoryPills(selectedCategory: selectedCategory, onCategorySelected: (cat) => recipeProvider?.setCategory(cat)),
               AppSpacing.gapH20,
               if (isLoading && recipes.isEmpty) ...[
-                const SizedBox(
-                  height: 140,
-                  child: AppLoadingView(message: 'Simmering fresh recipes...'),
-                ),
+                const SizedBox(height: 140, child: AppLoadingView(message: 'Simmering fresh recipes...')),
               ] else if (recipes.isEmpty) ...[
                 AppEmptyView(
                   title: 'No Recipes Found',
@@ -89,6 +86,7 @@ class HomeScreen extends StatelessWidget {
                     description: featured.subtitle.isNotEmpty ? featured.subtitle : featured.description,
                     prepTime: '${featured.prepTimeMinutes + featured.cookTimeMinutes} min',
                     difficulty: featured.difficulty,
+                    imageAsset: featured.imageUrl.isNotEmpty ? featured.imageUrl : AssetManager.recipePlaceholder,
                     isFavorite: featured.isFavorite,
                     onTap: () => context.push('${AppRoutePaths.recipeDetails}?id=${featured.id}'),
                     onFavoriteToggle: (_) => recipeProvider?.toggleFavorite(featured.id),
@@ -109,6 +107,7 @@ class HomeScreen extends StatelessWidget {
                             prepTime: '${popularRecipes[i].prepTimeMinutes} min',
                             calories: popularRecipes[i].calories,
                             rating: 4.8,
+                            imageAsset: popularRecipes[i].imageUrl.isNotEmpty ? popularRecipes[i].imageUrl : AssetManager.recipePlaceholder,
                             onTap: () => context.push('${AppRoutePaths.recipeDetails}?id=${popularRecipes[i].id}'),
                           ),
                         ),
@@ -134,6 +133,7 @@ class HomeScreen extends StatelessWidget {
         icon: const Icon(Icons.add_rounded, color: Colors.white),
         label: Text('New Recipe', style: getSemiBoldStyle(fontSize: FontSize.s14, color: Colors.white)),
       ),
+      ),
     );
   }
 
@@ -157,11 +157,15 @@ class HomeScreen extends StatelessWidget {
           ),
           child: Row(
             children: [
-              Container(
-                width: 44.r,
-                height: 44.r,
-                decoration: BoxDecoration(color: AppColors.primaryContainer, borderRadius: AppBorderRadius.r12),
-                child: const Icon(Icons.restaurant_menu_rounded, color: AppColors.primary),
+              ClipRRect(
+                borderRadius: AppBorderRadius.r12,
+                child: SizedBox(
+                  width: 44.r,
+                  height: 44.r,
+                  child: recipe.imageUrl.isNotEmpty
+                      ? RecipeImageView(imageSource: recipe.imageUrl, fit: BoxFit.cover)
+                      : Container(color: AppColors.primaryContainer, child: const Icon(Icons.restaurant_menu_rounded, color: AppColors.primary)),
+                ),
               ),
               AppSpacing.gapW12,
               Expanded(

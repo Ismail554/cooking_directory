@@ -33,7 +33,7 @@ ThemeData getLightTheme() {
     cardColor: AppColors.cardLight,
     dividerColor: AppColors.dividerLight,
     appBarTheme: const AppBarTheme(
-      backgroundColor: AppColors.backgroundLight,
+      backgroundColor: Colors.transparent,
       surfaceTintColor: Colors.transparent,
       elevation: AppElevation.e0,
       centerTitle: false,

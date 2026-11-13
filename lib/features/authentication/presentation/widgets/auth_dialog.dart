@@ -6,9 +6,11 @@ import '../../../../core/managers/app_colors.dart';
 import '../../../../core/managers/font_manager.dart';
 import '../../../../core/managers/style_manager.dart';
 import '../../../../core/managers/value_manager.dart';
+import '../../../../core/theme/theme_provider.dart';
 import '../../../../core/validation/validator.dart';
 import '../../../../core/widgets/app_button.dart';
 import '../../../../core/widgets/custom_snackbar.dart';
+import '../../../expenses/presentation/providers/expense_provider.dart';
 import '../../../recipes/presentation/providers/recipe_provider.dart';
 import '../providers/auth_provider.dart';
 import 'google_sign_in_button.dart';
@@ -44,10 +46,16 @@ class _AuthDialogState extends State<AuthDialog> {
     super.dispose();
   }
 
+  void _syncSessionData() {
+    context.read<RecipeProvider?>()?.loadRecipes();
+    context.read<ExpenseProvider?>()?.loadExpenses();
+    context.read<ThemeProvider?>()?.loadPreferences();
+  }
+
   Future<void> _handleGoogleSignIn(AuthProvider auth) async {
     final success = await auth.signInWithGoogle();
     if (!mounted || !success) return;
-    context.read<RecipeProvider?>()?.loadRecipes();
+    _syncSessionData();
     Navigator.of(context).pop(true);
     CustomSnackbar.showSuccess(context, 'Signed in as ${auth.displayName ?? auth.email ?? "Chef"}!');
   }
@@ -59,7 +67,7 @@ class _AuthDialogState extends State<AuthDialog> {
         : await auth.signInWithEmail(_emailController.text.trim(), _passwordController.text);
 
     if (!mounted || !success) return;
-    context.read<RecipeProvider?>()?.loadRecipes();
+    _syncSessionData();
     Navigator.of(context).pop(true);
     CustomSnackbar.showSuccess(
       context,

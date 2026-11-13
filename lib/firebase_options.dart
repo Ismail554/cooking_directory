@@ -49,6 +49,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '453421733668',
     projectId: 'cooking-directory-88438',
     authDomain: 'cooking-directory-88438.firebaseapp.com',
+    databaseURL: 'https://cooking-directory-88438-default-rtdb.firebaseio.com',
     storageBucket: 'cooking-directory-88438.firebasestorage.app',
     measurementId: 'G-E5Z27XMLDC',
   );
@@ -58,6 +59,7 @@ class DefaultFirebaseOptions {
     appId: '1:453421733668:android:d33c33011a410ffa49c5b1',
     messagingSenderId: '453421733668',
     projectId: 'cooking-directory-88438',
+    databaseURL: 'https://cooking-directory-88438-default-rtdb.firebaseio.com',
     storageBucket: 'cooking-directory-88438.firebasestorage.app',
     androidClientId:
         '453421733668-o882r7v0e5a8mtrfcqpvgql94ij1k1ut.apps.googleusercontent.com',
@@ -67,6 +69,7 @@ class DefaultFirebaseOptions {
     appId: '1:453421733668:ios:63deb2e8c97fd99349c5b1',
     messagingSenderId: '453421733668',
     projectId: 'cooking-directory-88438',
+    databaseURL: 'https://cooking-directory-88438-default-rtdb.firebaseio.com',
     storageBucket: 'cooking-directory-88438.firebasestorage.app',
     iosClientId:
         '453421733668-3op8qpumtd2p3vs6hdbh0sp5mgceca1m.apps.googleusercontent.com',
@@ -78,6 +81,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '453421733668',
     projectId: 'cooking-directory-88438',
     authDomain: 'cooking-directory-88438.firebaseapp.com',
+    databaseURL: 'https://cooking-directory-88438-default-rtdb.firebaseio.com',
     storageBucket: 'cooking-directory-88438.firebasestorage.app',
     measurementId: 'G-DYBXF2NGWL',
   );

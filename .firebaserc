@@ -1,6 +1,7 @@
 {
   "projects": {
     "default": "cooking-directory-88438"
-  }
+  },
+  "targets": {},
+  "etags": {}
 }
-

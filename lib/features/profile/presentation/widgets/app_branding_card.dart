@@ -14,7 +14,7 @@ class AppBrandingCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
-      height: 96.h,
+      constraints: BoxConstraints(minHeight: 84.h),
       decoration: BoxDecoration(
         color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
         borderRadius: AppBorderRadius.r16,
@@ -43,6 +43,7 @@ class AppBrandingCard extends StatelessWidget {
           AppSpacing.gapW16,
           Expanded(
             child: Column(
+              mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [

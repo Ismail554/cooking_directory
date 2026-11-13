@@ -10,7 +10,9 @@ import 'package:cooking_directory/core/managers/style_manager.dart';
 import 'package:cooking_directory/core/managers/value_manager.dart';
 import 'package:cooking_directory/core/routing/route_paths.dart';
 import 'package:cooking_directory/core/widgets/app_button.dart';
+import 'package:cooking_directory/core/widgets/app_themed_background.dart';
 import 'package:cooking_directory/core/widgets/custom_snackbar.dart';
+import 'package:cooking_directory/core/widgets/recipe_image_view.dart';
 import 'package:cooking_directory/features/recipes/data/datasources/recipe_local_datasource.dart';
 import 'package:cooking_directory/features/recipes/domain/entities/recipe.dart';
 import 'package:cooking_directory/features/recipes/presentation/providers/recipe_provider.dart';
@@ -70,13 +72,20 @@ class _RecipeDetailsScreenState extends State<RecipeDetailsScreen> {
   Future<void> _loadRecipe() async {
     try {
       final provider = context.read<RecipeProvider?>();
-      if (provider != null && provider.allRecipes.isNotEmpty) {
-        final match = provider.allRecipes.firstWhere(
-          (r) => r.id == widget.recipeId || (widget.recipeId == null && r.title == widget.title),
-          orElse: () => provider.allRecipes.first,
-        );
-        if (mounted) setState(() { _recipe = match; _isFavorite = _recipe.isFavorite; });
-        return;
+      if (provider != null) {
+        if (widget.recipeId != null) {
+          final fetched = await provider.getRecipeById(widget.recipeId!);
+          if (mounted) setState(() { _recipe = fetched; _isFavorite = _recipe.isFavorite; });
+          return;
+        }
+        if (provider.allRecipes.isNotEmpty) {
+          final match = provider.allRecipes.firstWhere(
+            (r) => r.id == widget.recipeId || (widget.recipeId == null && r.title == widget.title),
+            orElse: () => provider.allRecipes.first,
+          );
+          if (mounted) setState(() { _recipe = match; _isFavorite = _recipe.isFavorite; });
+          return;
+        }
       }
       final recipes = await const RecipeLocalDataSourceImpl().getSeedRecipes();
       final match = recipes.firstWhere(
@@ -97,11 +106,13 @@ class _RecipeDetailsScreenState extends State<RecipeDetailsScreen> {
     final theme = Theme.of(context);
     final onSurface = theme.colorScheme.onSurface;
 
-    return Scaffold(
-      body: CustomScrollView(
+    return AppThemedBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        body: CustomScrollView(
         slivers: [
           SliverAppBar(
-            expandedHeight: 250.h,
+            expandedHeight: 180.h,
             pinned: true,
             leading: _buildCircleAction(icon: Icons.arrow_back_rounded, onTap: () => context.pop()),
             actions: [
@@ -116,7 +127,7 @@ class _RecipeDetailsScreenState extends State<RecipeDetailsScreen> {
               background: Stack(
                 fit: StackFit.expand,
                 children: [
-                  Image.asset(AssetManager.recipePlaceholder, fit: BoxFit.cover, errorBuilder: (_, _, _) => Container(color: AppColors.primaryContainer)),
+                  RecipeImageView(imageSource: _recipe.imageUrl, fallbackAsset: AssetManager.recipePlaceholder, fit: BoxFit.cover),
                   const DecoratedBox(decoration: BoxDecoration(gradient: AppColors.heroOverlayGradient)),
                 ],
               ),
@@ -124,32 +135,29 @@ class _RecipeDetailsScreenState extends State<RecipeDetailsScreen> {
           ),
           SliverPadding(
             padding: AppSpacing.screenPadding,
-            sliver: SliverList(
-              delegate: SliverChildListDelegate([
-                Container(
-                  padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
-                  decoration: BoxDecoration(color: AppColors.primaryContainer, borderRadius: AppBorderRadius.r12),
-                  child: Text(_recipe.category, style: getBoldStyle(fontSize: FontSize.s12, color: AppColors.primaryDark)),
-                ),
-                AppSpacing.gapH8,
-                Text(_recipe.title, style: getBoldStyle(context: context, fontSize: FontSize.s22, color: onSurface)),
-                if (_recipe.subtitle.isNotEmpty) ...[
-                  AppSpacing.gapH4,
-                  Text(_recipe.subtitle, style: getMediumStyle(context: context, fontSize: FontSize.s14, color: AppColors.primary)),
+            sliver: SliverToBoxAdapter(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(_recipe.title, style: getBoldStyle(context: context, fontSize: FontSize.s22, color: onSurface)),
+                  if (_recipe.subtitle.isNotEmpty) ...[
+                    AppSpacing.gapH4,
+                    Text(_recipe.subtitle, style: getMediumStyle(context: context, fontSize: FontSize.s14, color: AppColors.primary)),
+                  ],
+                  AppSpacing.gapH8,
+                  Text(_recipe.description, style: getRegularStyle(context: context, fontSize: FontSize.s14, height: 1.45, color: theme.colorScheme.onSurfaceVariant)),
+                  AppSpacing.gapH16,
+                  RecipeStatsBar(prepTimeMinutes: _recipe.prepTimeMinutes, cookTimeMinutes: _recipe.cookTimeMinutes, calories: _recipe.calories, rating: 4.8, difficulty: _recipe.difficulty),
+                  AppSpacing.gapH24,
+                  IngredientsChecklist(ingredients: _recipe.ingredients, initialServings: _recipe.servings),
+                  AppSpacing.gapH24,
+                  InstructionsTimeline(
+                    steps: _recipe.steps,
+                    onStartTimer: (idx, mins) => CustomSnackbar.showSuccess(context, 'Started $mins min timer for Step ${idx + 1}'),
+                  ),
+                  AppSpacing.gapH32,
                 ],
-                AppSpacing.gapH8,
-                Text(_recipe.description, style: getRegularStyle(context: context, fontSize: FontSize.s14, height: 1.45, color: theme.colorScheme.onSurfaceVariant)),
-                AppSpacing.gapH16,
-                RecipeStatsBar(prepTimeMinutes: _recipe.prepTimeMinutes, cookTimeMinutes: _recipe.cookTimeMinutes, calories: _recipe.calories, rating: 4.8, difficulty: _recipe.difficulty),
-                AppSpacing.gapH24,
-                IngredientsChecklist(ingredients: _recipe.ingredients, initialServings: _recipe.servings),
-                AppSpacing.gapH24,
-                InstructionsTimeline(
-                  steps: _recipe.steps,
-                  onStartTimer: (idx, mins) => CustomSnackbar.showSuccess(context, 'Started $mins min timer for Step ${idx + 1}'),
-                ),
-                AppSpacing.gapH32,
-              ]),
+              ),
             ),
           ),
         ],
@@ -168,6 +176,7 @@ class _RecipeDetailsScreenState extends State<RecipeDetailsScreen> {
             },
           ),
         ),
+      ),
       ),
     );
   }

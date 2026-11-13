@@ -6,23 +6,28 @@ import 'package:cooking_directory/core/managers/font_manager.dart';
 import 'package:cooking_directory/core/managers/style_manager.dart';
 import 'package:cooking_directory/core/managers/value_manager.dart';
 
-/// Interactive culinary search bar with clear button and dietary filter action.
+/// Refined, focus-aware culinary search bar with animated border highlight,
+/// clear action, and styled filter button.
 class HomeSearchBar extends StatefulWidget {
   final TextEditingController? controller;
+  final FocusNode? focusNode;
   final ValueChanged<String>? onChanged;
   final ValueChanged<String>? onSubmitted;
   final VoidCallback? onFilterTap;
   final VoidCallback? onClear;
   final String hintText;
+  final bool hasActiveFilter;
 
   const HomeSearchBar({
     super.key,
     this.controller,
+    this.focusNode,
     this.onChanged,
     this.onSubmitted,
     this.onFilterTap,
     this.onClear,
     this.hintText = 'Search recipes, ingredients...',
+    this.hasActiveFilter = false,
   });
 
   @override
@@ -30,45 +35,58 @@ class HomeSearchBar extends StatefulWidget {
 }
 
 class _HomeSearchBarState extends State<HomeSearchBar> {
-  late final TextEditingController _internalController;
+  TextEditingController? _internalController;
+  FocusNode? _internalFocusNode;
+
   TextEditingController get _effectiveController =>
-      widget.controller ?? _internalController;
+      widget.controller ?? (_internalController ??= TextEditingController());
+  FocusNode get _effectiveFocusNode =>
+      widget.focusNode ?? (_internalFocusNode ??= FocusNode());
 
   bool _showClear = false;
+  bool _isFocused = false;
 
   @override
   void initState() {
     super.initState();
-    if (widget.controller == null) {
-      _internalController = TextEditingController();
-    }
     _showClear = _effectiveController.text.isNotEmpty;
+    _isFocused = _effectiveFocusNode.hasFocus;
     _effectiveController.addListener(_onTextChange);
+    _effectiveFocusNode.addListener(_onFocusChange);
   }
 
   @override
   void didUpdateWidget(HomeSearchBar oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.controller != widget.controller) {
-      oldWidget.controller?.removeListener(_onTextChange);
+      (oldWidget.controller ?? _internalController)?.removeListener(_onTextChange);
       _effectiveController.addListener(_onTextChange);
+      _showClear = _effectiveController.text.isNotEmpty;
+    }
+    if (oldWidget.focusNode != widget.focusNode) {
+      (oldWidget.focusNode ?? _internalFocusNode)?.removeListener(_onFocusChange);
+      _effectiveFocusNode.addListener(_onFocusChange);
+      _isFocused = _effectiveFocusNode.hasFocus;
     }
   }
 
   @override
   void dispose() {
     _effectiveController.removeListener(_onTextChange);
-    if (widget.controller == null) {
-      _internalController.dispose();
-    }
+    _effectiveFocusNode.removeListener(_onFocusChange);
+    _internalController?.dispose();
+    _internalFocusNode?.dispose();
     super.dispose();
   }
 
   void _onTextChange() {
     final hasText = _effectiveController.text.isNotEmpty;
-    if (_showClear != hasText) {
-      setState(() => _showClear = hasText);
-    }
+    if (_showClear != hasText && mounted) setState(() => _showClear = hasText);
+  }
+
+  void _onFocusChange() {
+    final focused = _effectiveFocusNode.hasFocus;
+    if (_isFocused != focused && mounted) setState(() => _isFocused = focused);
   }
 
   void _handleClear() {
@@ -80,75 +98,99 @@ class _HomeSearchBarState extends State<HomeSearchBar> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return Container(
+    final primaryTone = isDark ? AppColors.primaryLight : AppColors.primary;
+    final borderColor = _isFocused ? primaryTone : (isDark ? AppColors.borderDark : AppColors.borderLight.withValues(alpha: 0.75));
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
+      curve: Curves.easeOut,
       decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
+        color: Theme.of(context).cardColor.withValues(alpha: isDark ? 0.94 : 0.98),
         borderRadius: AppBorderRadius.r16,
-        boxShadow: const [AppColors.culinaryCardShadow],
-        border: Border.all(
-          color: isDark
-              ? AppColors.borderDark
-              : AppColors.borderLight.withValues(alpha: 0.6),
-          width: 1.w,
-        ),
+        boxShadow: [_isFocused ? AppColors.glowingOrangeShadow : AppColors.culinaryCardShadow],
+        border: Border.all(color: borderColor, width: _isFocused ? 1.5.w : 1.w),
       ),
-      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 2.h),
+      padding: EdgeInsets.fromLTRB(8.w, 4.h, 6.w, 4.h),
       child: Row(
         children: [
-          Icon(
-            Icons.search_rounded,
-            color: AppColors.primary,
-            size: AppIconSize.s24,
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            padding: EdgeInsets.all(8.r),
+            decoration: BoxDecoration(color: primaryTone.withValues(alpha: _isFocused ? 0.16 : 0.10), borderRadius: AppBorderRadius.r12),
+            child: Icon(Icons.search_rounded, color: primaryTone, size: AppIconSize.s20),
           ),
           AppSpacing.gapW8,
           Expanded(
             child: TextField(
               controller: _effectiveController,
+              focusNode: _effectiveFocusNode,
+              textInputAction: TextInputAction.search,
               onChanged: widget.onChanged,
               onSubmitted: widget.onSubmitted,
-              style: getMediumStyle(
-                context: context,
-                fontSize: FontSize.s14,
-              ),
+              onTapOutside: (_) => _effectiveFocusNode.unfocus(),
+              style: getMediumStyle(context: context, fontSize: FontSize.s14),
               decoration: InputDecoration(
                 hintText: widget.hintText,
                 hintStyle: getRegularStyle(
                   context: context,
-                  fontSize: FontSize.s14,
-                  color: isDark
-                      ? AppColors.textHintDark
-                      : AppColors.textHintLight,
+                  fontSize: FontSize.s13,
+                  color: isDark ? AppColors.textHintDark : AppColors.textHintLight,
                 ),
                 border: InputBorder.none,
+                enabledBorder: InputBorder.none,
+                focusedBorder: InputBorder.none,
+                filled: false,
                 isDense: true,
-                contentPadding: EdgeInsets.symmetric(vertical: 12.h),
+                contentPadding: EdgeInsets.symmetric(vertical: 10.h),
               ),
             ),
           ),
-          if (_showClear)
-            IconButton(
-              icon: Icon(
-                Icons.close_rounded,
-                size: AppIconSize.s18,
-                color: isDark
-                    ? AppColors.textTertiaryDark
-                    : AppColors.textTertiaryLight,
-              ),
-              onPressed: _handleClear,
-              tooltip: 'Clear search',
-            ),
-          IconButton(
-            icon: Icon(
-              Icons.tune_rounded,
-              size: AppIconSize.s20,
-              color: AppColors.primary,
-            ),
-            onPressed: widget.onFilterTap,
-            tooltip: 'Filter recipes',
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 160),
+            child: _showClear
+                ? IconButton(
+                    key: const ValueKey('search_clear_btn'),
+                    visualDensity: VisualDensity.compact,
+                    icon: Icon(Icons.close_rounded, size: AppIconSize.s18, color: isDark ? AppColors.textTertiaryDark : AppColors.textTertiaryLight),
+                    onPressed: _handleClear,
+                    tooltip: 'Clear search',
+                  )
+                : const SizedBox.shrink(),
           ),
+          Container(width: 1, height: 22.h, margin: EdgeInsets.symmetric(horizontal: 4.w), color: isDark ? AppColors.borderDark : AppColors.borderLight),
+          _FilterIconButton(primaryTone: primaryTone, hasActiveFilter: widget.hasActiveFilter, onTap: widget.onFilterTap),
         ],
       ),
+    );
+  }
+}
+
+class _FilterIconButton extends StatelessWidget {
+  final Color primaryTone;
+  final bool hasActiveFilter;
+  final VoidCallback? onTap;
+  const _FilterIconButton({required this.primaryTone, required this.hasActiveFilter, this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        Material(
+          color: hasActiveFilter ? primaryTone.withValues(alpha: 0.16) : Colors.transparent,
+          borderRadius: AppBorderRadius.r12,
+          child: IconButton(visualDensity: VisualDensity.compact, icon: Icon(Icons.tune_rounded, size: AppIconSize.s20, color: primaryTone), onPressed: onTap, tooltip: 'Filter recipes'),
+        ),
+        if (hasActiveFilter)
+          Positioned(
+            right: 6.r,
+            top: 6.r,
+            child: Container(
+              width: 7.r,
+              height: 7.r,
+              decoration: BoxDecoration(color: AppColors.accent, shape: BoxShape.circle, border: Border.all(color: Theme.of(context).cardColor, width: 1.2)),
+            ),
+          ),
+      ],
     );
   }
 }

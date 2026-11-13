@@ -9,6 +9,7 @@ import '../../../../core/managers/style_manager.dart';
 import '../../../../core/managers/value_manager.dart';
 import '../../../../core/routing/route_paths.dart';
 import '../../../../core/widgets/app_button.dart';
+import '../../../../core/widgets/app_themed_background.dart';
 import '../widgets/onboarding_slide_card.dart';
 
 /// Multi-step culinary Onboarding Screen that leads unauthenticated users to AuthScreen.
@@ -77,8 +78,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final isLast = _currentIndex == _slides.length - 1;
 
-    return Scaffold(
-      body: SafeArea(
+    return AppThemedBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        body: SafeArea(
         child: Column(
           children: [
             Padding(
@@ -157,6 +160,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             ),
           ],
         ),
+      ),
       ),
     );
   }

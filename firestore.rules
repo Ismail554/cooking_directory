@@ -1,37 +1,5 @@
 rules_version = '2';
 
-// ===============================================================
-// Assumed Data Model
-// ===============================================================
-//
-// Collection: users/{userId}
-// Document ID: Firebase Auth UID
-// Fields:
-//   - uid: string (required, matches userId)
-//   - email: string (optional)
-//   - displayName: string (optional)
-//   - createdAt: timestamp (required)
-//
-// Collection: users/{userId}/recipes/{recipeId}
-// Document ID: recipe ID
-// Fields:
-//   - id: string (required)
-//   - title: string (required, 1-150 chars)
-//   - subtitle: string (optional)
-//   - description: string (optional)
-//   - category: string (required)
-//   - prepTimeMinutes: number (required, >= 0)
-//   - cookTimeMinutes: number (required, >= 0)
-//   - servings: number (required, > 0)
-//   - calories: number (optional)
-//   - difficulty: string (optional)
-//   - ingredients: list of strings (required)
-//   - steps: list of strings (required)
-//   - isFavorite: bool (optional)
-//   - createdAt: string or timestamp (required)
-//
-// ===============================================================
-
 service cloud.firestore {
   match /databases/{database}/documents {
 
@@ -43,7 +11,7 @@ service cloud.firestore {
       return isAuthenticated() && request.auth.uid == userId;
     }
 
-    // User profile documents
+    // User profile & account sync root document
     match /users/{userId} {
       allow read, write: if isOwner(userId);
 
@@ -51,13 +19,16 @@ service cloud.firestore {
       match /recipes/{recipeId} {
         allow read, write: if isOwner(userId);
       }
-    }
 
-    // Global / public recipe catalog (optional shared browsing)
-    match /recipes/{recipeId} {
-      allow read: if isAuthenticated();
-      allow write: if isAuthenticated();
+      // User private food expenses log
+      match /expenses/{expenseId} {
+        allow read, write: if isOwner(userId);
+      }
+
+      // User preferences & realtime sync control settings
+      match /settings/{settingId} {
+        allow read, write: if isOwner(userId);
+      }
     }
   }
 }
-

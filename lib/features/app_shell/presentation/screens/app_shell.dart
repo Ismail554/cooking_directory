@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:cooking_directory/core/managers/app_colors.dart';
 import 'package:cooking_directory/core/managers/asset_manager.dart';
+import 'package:cooking_directory/core/widgets/app_themed_background.dart';
 
 /// Main navigation shell managing persistent bottom navigation with [GoRouter].
 /// Index 0: Expenses, Index 1: Recipes (Home), Index 2: Profile.
@@ -81,7 +82,7 @@ class AppShell extends StatelessWidget {
     final selectedColor = isDark ? AppColors.primaryLight : AppColors.primary;
     final isHomeTab = navigationShell.currentIndex == 1;
 
-    return PopScope(
+    return PopScope<dynamic>(
       canPop: isHomeTab,
       onPopInvokedWithResult: (didPop, _) {
         if (didPop) return;
@@ -89,8 +90,10 @@ class AppShell extends StatelessWidget {
           _onDestinationSelected(1);
         }
       },
-      child: Scaffold(
-        body: navigationShell,
+      child: AppThemedBackground(
+        child: Scaffold(
+          backgroundColor: Colors.transparent,
+          body: navigationShell,
         bottomNavigationBar: NavigationBar(
           selectedIndex: navigationShell.currentIndex,
           onDestinationSelected: _onDestinationSelected,
@@ -137,6 +140,7 @@ class AppShell extends StatelessWidget {
             ),
           ],
         ),
+      ),
       ),
     );
   }

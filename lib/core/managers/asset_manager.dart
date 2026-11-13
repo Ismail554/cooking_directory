@@ -9,6 +9,7 @@ abstract final class AssetManager {
   // Images
   static const String appLogo = '$_imagesPath/app_logo.png';
   static const String splashBackground = '$_imagesPath/splash_bg.png';
+  static const String splashBackgroundDark = '$_imagesPath/splash_bg_dark.png';
   static const String recipePlaceholder = '$_imagesPath/recipe_placeholder.png';
   static const String userAvatar = '$_imagesPath/default_avatar.png';
   static const String emptyStateIllustration = '$_imagesPath/empty_state.png';

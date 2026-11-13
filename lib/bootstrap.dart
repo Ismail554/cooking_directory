@@ -1,5 +1,7 @@
 import 'dart:async';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -17,6 +19,10 @@ Future<void> bootstrap() async {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
+    if (!kIsWeb) {
+      FirebaseDatabase.instance.setPersistenceEnabled(true);
+      FirebaseFirestore.instance.settings = const Settings(persistenceEnabled: true);
+    }
   } catch (e) {
     if (kDebugMode) debugPrint('Firebase initialization notice: $e');
   }

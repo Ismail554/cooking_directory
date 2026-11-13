@@ -1,13 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
+import 'package:cooking_directory/core/managers/asset_manager.dart';
 import 'package:cooking_directory/core/widgets/app_button.dart';
+import 'package:cooking_directory/features/recipes/data/services/recipe_image_service.dart';
 import 'package:cooking_directory/features/recipes/domain/entities/recipe.dart';
 import 'package:cooking_directory/features/recipes/domain/repositories/recipe_repository.dart';
 import 'package:cooking_directory/features/recipes/presentation/providers/recipe_provider.dart';
 import 'package:cooking_directory/features/recipes/presentation/screens/add_recipe_screen.dart';
 import 'package:cooking_directory/features/recipes/presentation/widgets/csv_import_dialog.dart';
+
+class _FakeRecipeImageService extends RecipeImageService {
+  @override
+  Future<String?> pickAndUploadImage(ImageSource source) async {
+    return AssetManager.recipePlaceholder;
+  }
+}
 
 class _FakeRecipeRepo implements RecipeRepository {
   final List<Recipe> added = [];
@@ -126,6 +136,46 @@ void main() {
       expect(fakeRepo.added, hasLength(1));
       expect(fakeRepo.added.first.ingredients, ['200g Spaghetti']);
       expect(fakeRepo.added.first.steps.first, contains('# Low Heat'));
+    });
+
+    testWidgets('uploads recipe photo from Gallery and saves imageUrl on Recipe', (tester) async {
+      tester.view.physicalSize = const Size(1125, 2436);
+      tester.view.devicePixelRatio = 3.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      final fakeRepo = _FakeRecipeRepo();
+      final provider = RecipeProvider(repository: fakeRepo);
+      await tester.pumpWidget(
+        _buildTestApp(
+          AddRecipeScreen(imageService: _FakeRecipeImageService()),
+          provider: provider,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Upload Recipe Photo'), findsOneWidget);
+      expect(find.text('Gallery'), findsOneWidget);
+      expect(find.text('Camera'), findsOneWidget);
+      expect(find.text('Image URL'), findsOneWidget);
+
+      await tester.tap(find.text('Gallery'));
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const Key('remove_recipe_image_button')), findsOneWidget);
+
+      await tester.enterText(find.widgetWithText(TextFormField, 'Recipe Title'), 'Margherita Pizza');
+      await tester.enterText(find.widgetWithText(TextField, 'e.g. 200g spaghetti'), 'Fresh Mozzarella');
+      await tester.enterText(
+        find.widgetWithText(TextField, 'Step instruction (e.g. Crisp guanciale in pan)'),
+        'Bake at 250C for 8 minutes',
+      );
+
+      await tester.tap(find.widgetWithText(AppButton, 'Save Recipe'));
+      await tester.pumpAndSettle();
+
+      expect(fakeRepo.added, hasLength(1));
+      expect(fakeRepo.added.first.imageUrl, AssetManager.recipePlaceholder);
     });
   });
 }

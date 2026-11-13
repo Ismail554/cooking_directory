@@ -4,7 +4,7 @@ abstract class RecipeRepository {
   /// Retrieves all recipes from local and remote data sources.
   Future<List<Recipe>> getAllRecipes();
 
-  /// Saves a new recipe to local storage and syncs with Firestore.
+  /// Saves a new recipe to local storage and syncs with Realtime DB + Firestore.
   Future<Recipe> addRecipe(Recipe recipe);
 
   /// Imports multiple recipes parsed from CSV and stores them.

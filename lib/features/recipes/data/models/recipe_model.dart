@@ -15,6 +15,7 @@ class RecipeModel extends Recipe {
     required super.difficulty,
     required super.ingredients,
     required super.steps,
+    super.imageUrl = '',
     super.isFavorite = false,
     required super.createdAt,
   });
@@ -40,6 +41,7 @@ class RecipeModel extends Recipe {
               ?.map((e) => e.toString())
               .toList() ??
           const [],
+      imageUrl: json['imageUrl'] as String? ?? '',
       isFavorite: json['isFavorite'] as bool? ?? false,
       createdAt: json['createdAt'] != null
           ? DateTime.tryParse(json['createdAt'].toString()) ?? DateTime.now()
@@ -62,6 +64,7 @@ class RecipeModel extends Recipe {
       'difficulty': difficulty,
       'ingredients': ingredients,
       'steps': steps,
+      'imageUrl': imageUrl,
       'isFavorite': isFavorite,
       'createdAt': createdAt.toIso8601String(),
     };
@@ -82,6 +85,7 @@ class RecipeModel extends Recipe {
       difficulty: recipe.difficulty,
       ingredients: List<String>.from(recipe.ingredients),
       steps: List<String>.from(recipe.steps),
+      imageUrl: recipe.imageUrl,
       isFavorite: recipe.isFavorite,
       createdAt: recipe.createdAt,
     );

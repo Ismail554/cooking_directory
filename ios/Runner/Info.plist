@@ -70,6 +70,10 @@
 	<string>453421733668-3op8qpumtd2p3vs6hdbh0sp5mgceca1m.apps.googleusercontent.com</string>
 	<key>GIDServerClientID</key>
 	<string>453421733668-01cl1epvjhjguc7u1v3v0r19numbioit.apps.googleusercontent.com</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Cooking Directory uses your camera to take photos of your culinary creations and recipes.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Cooking Directory accesses your photo library so you can upload dish photos for your recipes.</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>

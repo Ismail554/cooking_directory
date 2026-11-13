@@ -32,6 +32,7 @@ class AuthProvider extends ChangeNotifier {
 
   AuthUser? get currentUser => _currentUser;
   bool get isAuthenticated => _currentUser != null && !_currentUser!.isAnonymous;
+  bool get isEmailVerified => _currentUser?.emailVerified ?? false;
   bool get isAnonymous => _currentUser?.isAnonymous ?? false;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
@@ -40,6 +41,36 @@ class AuthProvider extends ChangeNotifier {
   String? get photoUrl => _currentUser?.photoUrl;
   String? get displayName => _currentUser?.displayName;
   String? get email => _currentUser?.email;
+
+  Future<bool> _runAction(Future<bool> Function() action) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+    try {
+      return await action();
+    } catch (e) {
+      _errorMessage = _cleanError(e);
+      return false;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<bool> sendEmailVerification() => _runAction(() async {
+        await _repository.sendEmailVerification();
+        return true;
+      });
+
+  Future<bool> reloadUser() => _runAction(() async {
+        _currentUser = await _repository.reloadUser();
+        return _currentUser?.emailVerified ?? false;
+      });
+
+  Future<bool> sendPasswordResetEmail(String email) => _runAction(() async {
+        await _repository.sendPasswordResetEmail(email);
+        return true;
+      });
 
   void clearError() {
     if (_errorMessage != null) {
@@ -57,77 +88,33 @@ class AuthProvider extends ChangeNotifier {
     return token;
   }
 
-  Future<bool> signInWithGoogle() async {
-    _isLoading = true;
-    _errorMessage = null;
-    notifyListeners();
-    try {
-      _currentUser = await _repository.signInWithGoogle();
-      return _currentUser != null;
-    } catch (e) {
-      _errorMessage = _cleanError(e);
-      return false;
-    } finally {
-      _isLoading = false;
-      notifyListeners();
-    }
-  }
+  Future<bool> signInWithGoogle() => _runAction(() async {
+        _currentUser = await _repository.signInWithGoogle();
+        return _currentUser != null;
+      });
 
-  Future<bool> signInWithEmail(String email, String password) async {
-    _isLoading = true;
-    _errorMessage = null;
-    notifyListeners();
-    try {
-      _currentUser = await _repository.signInWithEmail(email, password);
-      if (_currentUser == null) {
-        _errorMessage = 'Unable to sign in with the provided credentials.';
-        return false;
-      }
-      return true;
-    } catch (e) {
-      _errorMessage = _cleanError(e);
-      return false;
-    } finally {
-      _isLoading = false;
-      notifyListeners();
-    }
-  }
+  Future<bool> signInWithEmail(String email, String password) => _runAction(() async {
+        _currentUser = await _repository.signInWithEmail(email, password);
+        if (_currentUser == null) {
+          _errorMessage = 'Unable to sign in with the provided credentials.';
+          return false;
+        }
+        return true;
+      });
 
-  Future<bool> registerWithEmail(String name, String email, String password) async {
-    _isLoading = true;
-    _errorMessage = null;
-    notifyListeners();
-    try {
-      _currentUser = await _repository.registerWithEmail(name, email, password);
-      if (_currentUser == null) {
-        _errorMessage = 'Could not create account. Please try again.';
-        return false;
-      }
-      return true;
-    } catch (e) {
-      _errorMessage = _cleanError(e);
-      return false;
-    } finally {
-      _isLoading = false;
-      notifyListeners();
-    }
-  }
+  Future<bool> registerWithEmail(String name, String email, String password) => _runAction(() async {
+        _currentUser = await _repository.registerWithEmail(name, email, password);
+        if (_currentUser == null) {
+          _errorMessage = 'Could not create account. Please try again.';
+          return false;
+        }
+        return true;
+      });
 
-  Future<bool> signInAnonymously() async {
-    _isLoading = true;
-    _errorMessage = null;
-    notifyListeners();
-    try {
-      _currentUser = await _repository.signInAnonymously();
-      return _currentUser != null;
-    } catch (e) {
-      _errorMessage = _cleanError(e);
-      return false;
-    } finally {
-      _isLoading = false;
-      notifyListeners();
-    }
-  }
+  Future<bool> signInAnonymously() => _runAction(() async {
+        _currentUser = await _repository.signInAnonymously();
+        return _currentUser != null;
+      });
 
   Future<void> signOut() async {
     _isLoading = true;

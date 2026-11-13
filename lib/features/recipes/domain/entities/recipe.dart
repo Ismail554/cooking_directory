@@ -11,6 +11,7 @@ class Recipe {
   final String difficulty;
   final List<String> ingredients;
   final List<String> steps;
+  final String imageUrl;
   final bool isFavorite;
   final DateTime createdAt;
 
@@ -27,6 +28,7 @@ class Recipe {
     required this.difficulty,
     required this.ingredients,
     required this.steps,
+    this.imageUrl = '',
     this.isFavorite = false,
     required this.createdAt,
   });
@@ -44,6 +46,7 @@ class Recipe {
     String? difficulty,
     List<String>? ingredients,
     List<String>? steps,
+    String? imageUrl,
     bool? isFavorite,
     DateTime? createdAt,
   }) {
@@ -60,6 +63,7 @@ class Recipe {
       difficulty: difficulty ?? this.difficulty,
       ingredients: ingredients ?? this.ingredients,
       steps: steps ?? this.steps,
+      imageUrl: imageUrl ?? this.imageUrl,
       isFavorite: isFavorite ?? this.isFavorite,
       createdAt: createdAt ?? this.createdAt,
     );

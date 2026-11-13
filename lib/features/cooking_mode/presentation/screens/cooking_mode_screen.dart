@@ -11,6 +11,7 @@ import 'package:cooking_directory/core/managers/font_manager.dart';
 import 'package:cooking_directory/core/managers/style_manager.dart';
 import 'package:cooking_directory/core/managers/value_manager.dart';
 import 'package:cooking_directory/core/widgets/app_button.dart';
+import 'package:cooking_directory/core/widgets/app_themed_background.dart';
 import 'package:cooking_directory/features/cooking_mode/presentation/widgets/cooking_celebration_dialog.dart';
 import 'package:cooking_directory/features/recipes/data/datasources/recipe_local_datasource.dart';
 import 'package:cooking_directory/features/recipes/domain/entities/instruction_step_data.dart';
@@ -63,11 +64,10 @@ class _CookingModeScreenState extends State<CookingModeScreen> {
         }
       }
       final recipes = await const RecipeLocalDataSourceImpl().getSeedRecipes();
-      final match = recipes.firstWhere(
+      final match = recipes.where(
         (r) => r.id == widget.recipeId || (widget.recipeId == null && r.title == widget.title),
-        orElse: () => recipes.first,
-      );
-      if (mounted && match.steps.isNotEmpty) setState(() => _steps = match.steps);
+      ).firstOrNull;
+      if (mounted && match != null && match.steps.isNotEmpty) setState(() => _steps = match.steps);
     } catch (_) {}
   }
 
@@ -105,93 +105,93 @@ class _CookingModeScreenState extends State<CookingModeScreen> {
     final parsed = InstructionStepData.parse(_steps[_currentStep]);
     final tagColor = isDark ? AppColors.secondaryLight : AppColors.secondary;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title ?? 'Cooking Mode', style: getBoldStyle(context: context, fontSize: FontSize.s18, color: onSurface)),
-        centerTitle: true,
-        leading: IconButton(icon: const Icon(Icons.close_rounded), tooltip: 'Exit', onPressed: () => context.pop()),
-        actions: [
-          Padding(
-            padding: EdgeInsets.only(right: AppSpacing.s12),
-            child: ActionChip(
-              avatar: Image.asset(AssetManager.icTimer, width: 16.r, height: 16.r, errorBuilder: (_, _, _) => const Icon(Icons.timer_outlined, size: 16, color: AppColors.primary)),
-              label: Text('Timers', style: getMediumStyle(fontSize: FontSize.s12, color: AppColors.primaryDark)),
-              backgroundColor: AppColors.primaryContainer,
-              side: BorderSide.none,
-              onPressed: _showTimerDialog,
+    return AppThemedBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        appBar: AppBar(
+          title: Text(widget.title ?? 'Cooking Mode', style: getBoldStyle(context: context, fontSize: FontSize.s18, color: onSurface)),
+          centerTitle: true,
+          leading: IconButton(icon: const Icon(Icons.close_rounded), tooltip: 'Exit', onPressed: () => context.pop()),
+          actions: [
+            Padding(
+              padding: EdgeInsets.only(right: AppSpacing.s12),
+              child: ActionChip(
+                avatar: Image.asset(AssetManager.icTimer, width: 16.r, height: 16.r, errorBuilder: (_, _, _) => const Icon(Icons.timer_outlined, size: 16, color: AppColors.primary)),
+                label: Text('Timers', style: getMediumStyle(fontSize: FontSize.s12, color: AppColors.primaryDark)),
+                backgroundColor: AppColors.primaryContainer,
+                side: BorderSide.none,
+                onPressed: _showTimerDialog,
+              ),
             ),
-          ),
-        ],
-      ),
-      body: SafeArea(
-        child: Padding(
-          padding: AppSpacing.screenPadding,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              ClipRRect(
-                borderRadius: AppBorderRadius.r8,
-                child: LinearProgressIndicator(value: progress, minHeight: 8.h, backgroundColor: theme.colorScheme.surfaceContainerHighest, valueColor: const AlwaysStoppedAnimation(AppColors.primary)),
-              ),
-              AppSpacing.gapH12,
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(child: Text('Step ${_currentStep + 1} of $totalSteps', maxLines: 1, overflow: TextOverflow.ellipsis, style: getSemiBoldStyle(context: context, fontSize: FontSize.s14, color: AppColors.primary))),
-                  AppSpacing.gapW8,
-                  Text('${(progress * 100).round()}% Completed', style: getRegularStyle(context: context, fontSize: FontSize.s12, color: theme.colorScheme.onSurfaceVariant)),
-                ],
-              ),
-              AppSpacing.gapH24,
-              Expanded(
-                child: Card(
-                  elevation: AppElevation.e2,
-                  shape: RoundedRectangleBorder(borderRadius: AppBorderRadius.r16),
-                  child: Padding(
-                    padding: EdgeInsets.all(AppSpacing.s20),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(children: [
-                          Container(padding: EdgeInsets.all(AppSpacing.s8), decoration: const BoxDecoration(color: AppColors.primaryContainer, shape: BoxShape.circle), child: Text('${_currentStep + 1}', style: getBoldStyle(fontSize: FontSize.s16, color: AppColors.primaryDark))),
-                          AppSpacing.gapW12,
-                          Expanded(child: Text('Instruction', style: getBoldStyle(context: context, fontSize: FontSize.s16, color: onSurface))),
-                          SvgPicture.asset(AssetManager.svgCookingPot, width: 22.r, height: 22.r),
-                        ]),
-                        AppSpacing.gapH16,
-                        Expanded(
-                          child: SingleChildScrollView(
-                            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                              Text(parsed.instruction, style: getRegularStyle(context: context, fontSize: FontSize.s16, height: 1.5, color: onSurface)),
-                              if (parsed.hasNotes) ...[
-                                AppSpacing.gapH12,
-                                Wrap(
-                                  spacing: 6.w,
-                                  runSpacing: 6.h,
-                                  children: parsed.notes.map((n) => Container(
-                                    padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
-                                    decoration: BoxDecoration(color: tagColor.withValues(alpha: 0.14), borderRadius: AppBorderRadius.r8, border: Border.all(color: tagColor.withValues(alpha: 0.35))),
-                                    child: Text(n, style: getMediumStyle(fontSize: FontSize.s12, color: tagColor)),
-                                  )).toList(),
-                                ),
-                              ],
-                            ]),
+          ],
+        ),
+        body: SafeArea(
+          child: Padding(
+            padding: AppSpacing.screenPadding,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                ClipRRect(borderRadius: AppBorderRadius.r8, child: LinearProgressIndicator(value: progress, minHeight: 8.h, backgroundColor: theme.colorScheme.surfaceContainerHighest, valueColor: const AlwaysStoppedAnimation(AppColors.primary))),
+                AppSpacing.gapH12,
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(child: Text('Step ${_currentStep + 1} of $totalSteps', maxLines: 1, overflow: TextOverflow.ellipsis, style: getSemiBoldStyle(context: context, fontSize: FontSize.s14, color: AppColors.primary))),
+                    AppSpacing.gapW8,
+                    Text('${(progress * 100).round()}% Completed', style: getRegularStyle(context: context, fontSize: FontSize.s12, color: theme.colorScheme.onSurfaceVariant)),
+                  ],
+                ),
+                AppSpacing.gapH24,
+                Expanded(
+                  child: Card(
+                    elevation: AppElevation.e2,
+                    shape: RoundedRectangleBorder(borderRadius: AppBorderRadius.r16),
+                    child: Padding(
+                      padding: EdgeInsets.all(AppSpacing.s20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(children: [
+                            Container(padding: EdgeInsets.all(AppSpacing.s8), decoration: const BoxDecoration(color: AppColors.primaryContainer, shape: BoxShape.circle), child: Text('${_currentStep + 1}', style: getBoldStyle(fontSize: FontSize.s16, color: AppColors.primaryDark))),
+                            AppSpacing.gapW12,
+                            Expanded(child: Text('Instruction', style: getBoldStyle(context: context, fontSize: FontSize.s16, color: onSurface))),
+                            SvgPicture.asset(AssetManager.svgCookingPot, width: 22.r, height: 22.r),
+                          ]),
+                          AppSpacing.gapH16,
+                          Expanded(
+                            child: SingleChildScrollView(
+                              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                                Text(parsed.instruction, style: getRegularStyle(context: context, fontSize: FontSize.s16, height: 1.5, color: onSurface)),
+                                if (parsed.hasNotes) ...[
+                                  AppSpacing.gapH12,
+                                  Wrap(
+                                    spacing: 6.w,
+                                    runSpacing: 6.h,
+                                    children: parsed.notes.map((n) => Container(
+                                      padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
+                                      decoration: BoxDecoration(color: tagColor.withValues(alpha: 0.14), borderRadius: AppBorderRadius.r8, border: Border.all(color: tagColor.withValues(alpha: 0.35))),
+                                      child: Text(n, style: getMediumStyle(fontSize: FontSize.s12, color: tagColor)),
+                                    )).toList(),
+                                  ),
+                                ],
+                              ]),
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 ),
-              ),
-              AppSpacing.gapH24,
-              Row(children: [
-                if (_currentStep > 0) ...[
-                  Expanded(child: AppButton(text: 'Previous', isOutlined: true, onPressed: () => setState(() => _currentStep--))),
-                  AppSpacing.gapW16,
-                ],
-                Expanded(child: AppButton(text: _currentStep == totalSteps - 1 ? 'Finish' : 'Next Step', icon: _currentStep == totalSteps - 1 ? Icons.check_circle_rounded : Icons.arrow_forward_rounded, onPressed: _nextStep)),
-              ]),
-            ],
+                AppSpacing.gapH24,
+                Row(children: [
+                  if (_currentStep > 0) ...[
+                    Expanded(child: AppButton(text: 'Previous', isOutlined: true, onPressed: () => setState(() => _currentStep--))),
+                    AppSpacing.gapW16,
+                  ],
+                  Expanded(child: AppButton(text: _currentStep == totalSteps - 1 ? 'Finish' : 'Next Step', icon: _currentStep == totalSteps - 1 ? Icons.check_circle_rounded : Icons.arrow_forward_rounded, onPressed: _nextStep)),
+                ]),
+              ],
+            ),
           ),
         ),
       ),

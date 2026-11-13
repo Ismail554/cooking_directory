@@ -40,8 +40,8 @@ void main() {
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
 
-      await tester.pumpWidget(_buildAdversarialApp());
       AppRouter.router.go(AppRoutePaths.home);
+      await tester.pumpWidget(_buildAdversarialApp());
       await tester.pumpAndSettle();
 
       // Route 1: Home
@@ -110,8 +110,8 @@ void main() {
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
 
-      await tester.pumpWidget(_buildAdversarialApp());
       AppRouter.router.go(AppRoutePaths.home);
+      await tester.pumpWidget(_buildAdversarialApp());
       await tester.pumpAndSettle();
 
       // Go to Expenses tab
@@ -120,7 +120,7 @@ void main() {
       expect(AppRouter.router.state.matchedLocation, AppRoutePaths.expenses);
 
       // Trigger back button gesture via PopScope
-      final dynamic popScopeWidget = tester.widget(find.byType(PopScope).last);
+      final dynamic popScopeWidget = tester.widget(find.byType(PopScope).first);
       expect(popScopeWidget.canPop, isFalse);
       popScopeWidget.onPopInvokedWithResult(false, null);
       await tester.pumpAndSettle();
@@ -133,7 +133,7 @@ void main() {
       expect(AppRouter.router.state.matchedLocation, AppRoutePaths.profile);
 
       // Trigger back button gesture on Profile tab
-      final dynamic popScopeProfile = tester.widget(find.byType(PopScope).last);
+      final dynamic popScopeProfile = tester.widget(find.byType(PopScope).first);
       expect(popScopeProfile.canPop, isFalse);
       popScopeProfile.onPopInvokedWithResult(false, null);
       await tester.pumpAndSettle();
@@ -141,7 +141,7 @@ void main() {
       expect(AppRouter.router.state.matchedLocation, AppRoutePaths.home);
 
       // On Home tab, canPop should be true
-      final dynamic popScopeHome = tester.widget(find.byType(PopScope).last);
+      final dynamic popScopeHome = tester.widget(find.byType(PopScope).first);
       expect(popScopeHome.canPop, isTrue);
     });
 

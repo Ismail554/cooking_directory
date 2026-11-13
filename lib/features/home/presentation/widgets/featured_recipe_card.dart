@@ -8,6 +8,7 @@ import 'package:cooking_directory/core/managers/font_manager.dart';
 import 'package:cooking_directory/core/managers/style_manager.dart';
 import 'package:cooking_directory/core/managers/value_manager.dart';
 import 'package:cooking_directory/core/routing/route_paths.dart';
+import 'package:cooking_directory/core/widgets/recipe_image_view.dart';
 
 /// Gastronomic hero card showcasing the featured recipe of the day.
 class FeaturedRecipeCard extends StatefulWidget {
@@ -70,13 +71,10 @@ class _FeaturedRecipeCardState extends State<FeaturedRecipeCard> {
         child: Stack(
           fit: StackFit.expand,
           children: [
-            Image.asset(
-              widget.imageAsset,
+            RecipeImageView(
+              imageSource: widget.imageAsset,
+              fallbackAsset: AssetManager.recipePlaceholder,
               fit: BoxFit.cover,
-              errorBuilder: (_, _, _) => Container(
-                color: AppColors.primaryContainer,
-                child: const Center(child: Icon(Icons.restaurant_rounded, size: 48, color: AppColors.primary)),
-              ),
             ),
             const DecoratedBox(decoration: BoxDecoration(gradient: AppColors.heroOverlayGradient)),
             Material(

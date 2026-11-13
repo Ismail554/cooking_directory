@@ -7,16 +7,20 @@ import '../../../../core/managers/font_manager.dart';
 import '../../../../core/managers/style_manager.dart';
 import '../../../../core/managers/value_manager.dart';
 import '../../../../core/widgets/app_button.dart';
+import '../../../../core/widgets/app_themed_background.dart';
 import '../../../../core/widgets/custom_snackbar.dart';
+import '../../data/services/recipe_image_service.dart';
 import '../../domain/entities/recipe.dart';
 import '../providers/recipe_provider.dart';
 import '../widgets/csv_import_dialog.dart';
 import '../widgets/dynamic_list_input_section.dart';
 import '../widgets/instruction_step_input_section.dart';
 import '../widgets/recipe_form_time_servings_row.dart';
+import '../widgets/recipe_image_picker_card.dart';
 
 class AddRecipeScreen extends StatefulWidget {
-  const AddRecipeScreen({super.key});
+  final RecipeImageService? imageService;
+  const AddRecipeScreen({super.key, this.imageService});
 
   @override
   State<AddRecipeScreen> createState() => _AddRecipeScreenState();
@@ -39,15 +43,14 @@ class _AddRecipeScreenState extends State<AddRecipeScreen> {
 
   String _selectedCategory = 'Dinner';
   String _selectedDifficulty = 'Medium';
+  String _imageUrl = '';
   final List<String> _ingredients = [];
   final List<String> _steps = [];
   bool _isSaving = false;
 
   @override
   void dispose() {
-    for (final c in [_titleController, _subtitleController, _notesController, _prepController, _cookController, _servingsController]) {
-      c.dispose();
-    }
+    for (final c in [_titleController, _subtitleController, _notesController, _prepController, _cookController, _servingsController]) { c.dispose(); }
     super.dispose();
   }
 
@@ -80,12 +83,12 @@ class _AddRecipeScreenState extends State<AddRecipeScreen> {
       difficulty: _selectedDifficulty,
       ingredients: List.from(_ingredients),
       steps: List.from(_steps),
+      imageUrl: _imageUrl.trim(),
       createdAt: DateTime.now(),
     );
 
     final provider = context.read<RecipeProvider?>();
     if (provider != null) await provider.addRecipe(recipe);
-
     if (!mounted) return;
     setState(() => _isSaving = false);
     CustomSnackbar.show(context, message: 'Recipe "$title" saved!', type: SnackbarType.success);
@@ -114,8 +117,10 @@ class _AddRecipeScreenState extends State<AddRecipeScreen> {
   @override
   Widget build(BuildContext context) {
     final onSurface = Theme.of(context).colorScheme.onSurface;
-    return Scaffold(
-      appBar: AppBar(
+    return AppThemedBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        appBar: AppBar(
         title: Text('Add New Recipe', style: getBoldStyle(context: context, fontSize: FontSize.s18, color: onSurface)),
         actions: [
           TextButton.icon(onPressed: () => CsvImportDialog.show(context), icon: const Icon(Icons.file_upload_outlined, size: 18), label: const Text('Import CSV')),
@@ -131,6 +136,8 @@ class _AddRecipeScreenState extends State<AddRecipeScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
+                RecipeImagePickerCard(imageUrl: _imageUrl, imageService: widget.imageService, onImageChanged: (url) => setState(() => _imageUrl = url)),
+                AppSpacing.gapH12,
                 TextFormField(
                   controller: _titleController,
                   decoration: _buildDecoration(label: 'Recipe Title', hint: "Grandma's Carbonara", icon: Icons.restaurant_rounded),
@@ -155,18 +162,18 @@ class _AddRecipeScreenState extends State<AddRecipeScreen> {
                 Row(children: [
                   Expanded(
                     child: DropdownButtonFormField<String>(
-                      initialValue: _selectedCategory,
+                      initialValue: _selectedCategory, isExpanded: true,
                       decoration: _buildDecoration(label: 'Category', hint: 'Dinner', icon: Icons.category_outlined),
-                      items: _categories.map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
+                      items: _categories.map((c) => DropdownMenuItem(value: c, child: Text(c, overflow: TextOverflow.ellipsis))).toList(),
                       onChanged: (v) { if (v != null) setState(() => _selectedCategory = v); },
                     ),
                   ),
                   AppSpacing.gapW12,
                   Expanded(
                     child: DropdownButtonFormField<String>(
-                      initialValue: _selectedDifficulty,
+                      initialValue: _selectedDifficulty, isExpanded: true,
                       decoration: _buildDecoration(label: 'Difficulty', hint: 'Medium', icon: Icons.speed_rounded),
-                      items: _difficulties.map((d) => DropdownMenuItem(value: d, child: Text(d))).toList(),
+                      items: _difficulties.map((d) => DropdownMenuItem(value: d, child: Text(d, overflow: TextOverflow.ellipsis))).toList(),
                       onChanged: (v) { if (v != null) setState(() => _selectedDifficulty = v); },
                     ),
                   ),
@@ -187,6 +194,6 @@ class _AddRecipeScreenState extends State<AddRecipeScreen> {
           ]),
         ),
       ),
-    );
+    ));
   }
 }

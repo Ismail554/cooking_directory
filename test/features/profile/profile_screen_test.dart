@@ -32,6 +32,9 @@ class _StubAuthRepo implements AuthRepository {
   @override Future<AuthUser?> registerWithEmail(String name, String email, String password) async => null;
   @override Future<AuthUser?> signInWithGoogle() async => null;
   @override Future<AuthUser?> signInAnonymously() async => null;
+  @override Future<void> sendEmailVerification() async {}
+  @override Future<AuthUser?> reloadUser() async => null;
+  @override Future<void> sendPasswordResetEmail(String email) async {}
   @override Future<void> signOut() async {}
 }
 
@@ -186,6 +189,20 @@ void main() {
       expect(find.text('Are you sure you want to sign out of your chef profile?'), findsOneWidget);
       await tester.tap(find.text('Cancel'));
       await tester.pumpAndSettle();
+    });
+
+    testWidgets('renders Realtime DB & Account Sync controls and toggles live sync', (tester) async {
+      await tester.pumpWidget(_buildTestApp(const ProfileScreen()));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Realtime DB & Account Sync'), findsOneWidget);
+      expect(find.text('LIVE ON'), findsOneWidget);
+      expect(find.text('Sync Account Now'), findsOneWidget);
+      expect(find.text('Push to Cloud'), findsOneWidget);
+
+      await tester.tap(find.byKey(const Key('rtdb_live_toggle')));
+      await tester.pumpAndSettle();
+      expect(find.text('PAUSED'), findsOneWidget);
     });
   });
 }

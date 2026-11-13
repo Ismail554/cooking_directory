@@ -6,6 +6,7 @@ class AuthUser {
   final String? token;
   final String? providerId;
   final bool isAnonymous;
+  final bool emailVerified;
 
   const AuthUser({
     required this.uid,
@@ -15,6 +16,7 @@ class AuthUser {
     this.token,
     this.providerId,
     this.isAnonymous = false,
+    this.emailVerified = false,
   });
 
   AuthUser copyWith({
@@ -25,6 +27,7 @@ class AuthUser {
     String? token,
     String? providerId,
     bool? isAnonymous,
+    bool? emailVerified,
   }) {
     return AuthUser(
       uid: uid ?? this.uid,
@@ -34,6 +37,7 @@ class AuthUser {
       token: token ?? this.token,
       providerId: providerId ?? this.providerId,
       isAnonymous: isAnonymous ?? this.isAnonymous,
+      emailVerified: emailVerified ?? this.emailVerified,
     );
   }
 
@@ -48,5 +52,5 @@ class AuthUser {
 
   @override
   String toString() =>
-      'AuthUser(uid: $uid, email: $email, name: $displayName, provider: $providerId)';
+      'AuthUser(uid: $uid, email: $email, verified: $emailVerified, provider: $providerId)';
 }

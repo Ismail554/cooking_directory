@@ -163,6 +163,7 @@ void main() {
           ),
         ),
       );
+      AppRouter.router.go(AppRoutePaths.home);
       await tester.pumpAndSettle();
 
       expect(find.byType(HomeScreen), findsOneWidget);
